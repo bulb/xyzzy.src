@@ -2,16 +2,21 @@
 #ifndef _cdecl_h_
 # define _cdecl_h_
 
+#if !defined(__GNUG__)
 # pragma warning (disable: 4201)
+#endif // __GNUG__
 
 # include <stdio.h>
 # include <limits.h>
+#if !defined(__GNUG__)
 # include <windows.h>
 # include <winreg.h>
 # include <commctrl.h>
+#endif // __GNUG__
 # include <stdlib.h>
 # include <stddef.h>
 # include <string.h>
+#if !defined(__GNUG__)
 # include <mbstring.h>
 # include <malloc.h>
 
@@ -20,9 +25,15 @@
 # pragma warning (disable: 4510)
 # pragma warning (disable: 4514)
 # pragma warning (disable: 4610)
+#endif // __GNUG__
 
+#if defined(_WIN32)
 # define alloca _alloca
-
+#elif defined(__MINGW32__)
+# define alloca __builtin_alloca
+#else
+# include <alloca.h>
+#endif
 # define BITS_PER_SHORT (sizeof (short) * CHAR_BIT)
 # define BITS_PER_INT (sizeof (int) * CHAR_BIT)
 # define BITS_PER_LONG (sizeof (long) * CHAR_BIT)
@@ -35,13 +46,14 @@ typedef unsigned short u_short;
 typedef unsigned int u_int;
 typedef unsigned long u_long;
 
+#if defined(_WIN32)
 typedef char int8_t;
 typedef short int16_t;
 typedef long int32_t;
 typedef u_char u_int8_t;
 typedef u_short u_int16_t;
 typedef u_long u_int32_t;
-
+#endif // _WIN32
 typedef u_long pointer_t;
 
 typedef u_int16_t Char;
@@ -108,11 +120,13 @@ bcmp (const void *p1, const void *p2, size_t size)
   return memcmp (p1, p2, size);
 }
 
+#if defined(_WIN32)
 inline void *
 bzero (void *dst, size_t size)
 {
   return memset (dst, 0, size);
 }
+#endif // _WIN32
 
 inline void
 bcopy (const Char *src, Char *dst, size_t size)
@@ -158,7 +172,9 @@ int assert_failed (const char *, int);
 #  define DBG_PRINT(a) /* empty */
 # endif
 
+#ifndef __CONCAT
 # define __CONCAT(X, Y) X ## Y
+#endif // __CONCAT
 # define CONCAT(X, Y) __CONCAT (X, Y)
 
 # define __CONCAT3(X, Y, Z) X ## Y ## Z

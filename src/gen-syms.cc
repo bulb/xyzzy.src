@@ -3,7 +3,13 @@
 #include <string.h>
 #include <ctype.h>
 #include <time.h>
-#include <mbctype.h>
+#if !defined(__GNUG__)
+# include <mbctype.h>
+#else
+# ifndef _ismblend
+#  define _ismbblead(c) (0x80 <= (c) && ((c) < 0xa0 || 0xe0 <= (c)))
+# endif // _ismblend
+#endif
 #define NOT_COMPILE_TIME
 #include "cdecl.h"
 #include "symbol.h"
@@ -26,6 +32,12 @@ struct symbols
 #define STR(a) #a
 #define DEF(a, b, c, d, e, f, g) {STR (a), STR (b), STR (c), d, e, f, g}
 #define DEFX(a, b, c, d, e, f, g) {a, STR (b), STR (c), d, e, f, g}
+
+#ifdef __GNUG__
+# undef CONCAT
+# define STR2(s) s
+# define CONCAT(x, y) STR2(x)STR2(y)
+#endif // __GNUG__
 
 #define CAT CONCAT
 
@@ -2696,6 +2708,9 @@ print_vars (symbols *p, int n, const char *)
     }
 }
 
+#ifdef __GNUG__
+# define __cdecl
+#endif ///__GNUG__
 static int __cdecl
 compare (const void *a, const void *b)
 {
@@ -2806,6 +2821,9 @@ print_string ()
   printf ("#define EXTERN /* empty */\n");
   printf ("#include \"ed.h\"\n");
   printf ("#include \"symtable.h\"\n\n");
+#if defined(__GNUG__)
+  printf ("#define __stdcall __attribute__((stdcall))\n\n");
+#endif // __GNUG__
   printf ("static const char SS[] = \n\"");
   do_all (print_string);
   printf ("\";\n\n");
@@ -2886,7 +2904,11 @@ print_version ()
   printf ("int dump_version = %d;\n", time (0));
 }
 
+#if defined(__GNUG__)
+int
+#else
 void
+#endif // __GNUG__
 main (int argc, char **argv)
 {
   if (argc == 1)

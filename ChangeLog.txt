@@ -1,3 +1,6 @@
+2009-12-16  bulb  <ttomise@gmail.com>
+	* src : fix gen-syms for gcc
+
 2009-12-16  NANRI Masaoki  <southly@gmail.com>
 
 	* src : remove compiler option '-Zc:wchar_t-'.
