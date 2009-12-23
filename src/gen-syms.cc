@@ -9,6 +9,10 @@
 # ifndef _ismblend
 #  define _ismbblead(c) (0x80 <= (c) && ((c) < 0xa0 || 0xe0 <= (c)))
 # endif // _ismblend
+
+# ifndef __cdecl
+#  define __cdecl __attribute__((cdecl))
+# endif // __attribute__
 #endif
 #define NOT_COMPILE_TIME
 #include "cdecl.h"
@@ -2708,9 +2712,6 @@ print_vars (symbols *p, int n, const char *)
     }
 }
 
-#ifdef __GNUG__
-# define __cdecl
-#endif ///__GNUG__
 static int __cdecl
 compare (const void *a, const void *b)
 {

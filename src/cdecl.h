@@ -27,10 +27,10 @@
 # pragma warning (disable: 4610)
 #endif // __GNUG__
 
-#if defined(_WIN32)
-# define alloca _alloca
-#elif defined(__MINGW32__)
+#if defined(__MINGW32__) || defined(__MSYS__)
 # define alloca __builtin_alloca
+#elif defined(_WIN32)
+# define alloca _alloca
 #else
 # include <alloca.h>
 #endif
@@ -38,7 +38,9 @@
 # define BITS_PER_INT (sizeof (int) * CHAR_BIT)
 # define BITS_PER_LONG (sizeof (long) * CHAR_BIT)
 
+#ifndef PATH_MAX
 # define PATH_MAX 1024
+#endif // PATH_MAX
 # define BUFFER_NAME_MAX PATH_MAX
 
 typedef unsigned char u_char;

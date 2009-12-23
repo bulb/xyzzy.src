@@ -1,3 +1,7 @@
+2009-12-23  bulb  <ttomise@gmail.com>
+	* src : fix gen-syms for MinGW (_alloca, __cdecl, PATH_MAX)
+	MinGWでもコンパイル通るように修正。
+	
 2009-12-16  bulb  <ttomise@gmail.com>
 	* src : fix gen-syms for gcc
 
