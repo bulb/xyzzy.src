@@ -1,0 +1,32 @@
+CXX := g++
+CXXFLAGS := -DDEBUG #-DDEBUG_GC
+RM := rm -f
+
+INC = \
+-I-/usr/include \
+-I-. \
+
+vars-decl.h: gen-syms
+	./gen-syms -vars > $@
+
+fns-decl.h: gen-syms
+	./gen-syms -proto > $@
+
+symtable.cc: gen-syms
+	./gen-syms -symtable > $@
+
+dumpver.cc: gen-syms version.h
+	./gen-syms -version > $@
+
+gen-syms: gen-syms.cc symbol.h function.h
+	$(CXX) -o $@ $<
+
+PHONY: clean distclean
+clean:
+	$(RM) ./*.o
+	$(RM) gen-syms
+
+distclean:
+	$(RM) vars-decl.h
+	$(RM) fns-decs.h
+	$(RM) symtable.cc
