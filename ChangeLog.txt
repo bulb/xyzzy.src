@@ -1,3 +1,7 @@
+2010-01-03  bulb  <ttomise@gmail.com>
+	* src : add main.cc init_unix.cc toplev_unix.cc dataP_unix.h
+	UNIX環境でビルドが通すための準備。
+	
 2009-12-23  bulb  <ttomise@gmail.com>
 	* src : fix gen-syms for MinGW (_alloca, __cdecl, PATH_MAX)
 	MinGWでもコンパイル通るように修正。
