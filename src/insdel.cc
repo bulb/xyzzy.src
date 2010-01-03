@@ -658,6 +658,7 @@ Buffer::insert_file_contents (Window *wp, lisp filename, lisp visit,
 
   read_file_contents (rfc, path, offset, size);
 
+#if !defined(__GNUG__)
   if (rfc.r_status == ReadFileContext::RFCS_IOERR)
     {
       if (t_chunk)
@@ -666,6 +667,7 @@ Buffer::insert_file_contents (Window *wp, lisp filename, lisp visit,
         free_all_chunks (rfc.r_chunk);
       file_error (rfc.r_errcode, filename);
     }
+#endif // __GNUG__
 
   if (!rfc.r_chunk)
     {
@@ -677,7 +679,9 @@ Buffer::insert_file_contents (Window *wp, lisp filename, lisp visit,
           FEstorage_error ();
 
         case ReadFileContext::RFCS_OPEN:
+#if !defined(__GNUG__)
           file_error (rfc.r_errcode, filename);
+#endif // __GNUG__
 
         default:
           break;
@@ -766,11 +770,13 @@ Buffer::insert_file_contents (Window *wp, lisp filename, lisp visit,
       lchar_encoding = rfc.r_char_encoding;
       b_modified = 0;
       b_need_auto_save = 0;
+#if !defined(__GNUG__)
       b_modtime = rfc.r_modtime;
       if (symbol_value (Slock_file, this) == Kedit)
         unlock_file ();
       save_modtime_undo (b_modtime);
       maybe_modify_buffer_bar ();
+#endif // __GNUG__
     }
   else
     post_buffer_modified (Kinsert, wp->w_point,
@@ -1039,6 +1045,7 @@ encoding_utf16_p (lisp encoding)
           && xchar_encoding_type (encoding) == encoding_utf16);
 }
 
+#if !defined(__GNUG__) ///@todo CLIPBOARDTEXT
 static void *
 galloc (CLIPBOARDTEXT &clp, int size)
 {
@@ -1223,6 +1230,7 @@ Fcopy_to_clipboard (lisp string)
   xsymbol_value (Vkill_ring_newer_than_clipboard_p) = Qnil;
   return boole (result);
 }
+#endif // __GNUG__
 
 static int
 count_cf_text_length (const u_char *string)
@@ -1439,11 +1447,13 @@ make_string_from_clipboard_text (lisp lstring, const void *data, UINT fmt, int l
 {
   switch (fmt)
     {
+#if !defined(__GNUG__)
     case CF_TEXT:
       return make_string_from_cf_text (lstring, (const u_char *)data);
 
     case CF_UNICODETEXT:
       return make_string_from_cf_wtext (lstring, (const ucs2_t *)data, lang);
+#endif // __GNUG__
 
     default:
       assert (0);
@@ -1454,6 +1464,7 @@ make_string_from_clipboard_text (lisp lstring, const void *data, UINT fmt, int l
 static int
 get_clipboatd_data (UINT fmt, lisp lstring, int lang)
 {
+#if !defined(__GNUG__)
   HGLOBAL hgl = GetClipboardData (fmt);
   if (!hgl)
     return -1;
@@ -1463,11 +1474,15 @@ get_clipboatd_data (UINT fmt, lisp lstring, int lang)
   int r = make_string_from_clipboard_text (lstring, data, fmt, lang);
   GlobalUnlock (hgl);
   return r;
+#else
+  return 0;
+#endif // __GNUG__
 }
 
 lisp
 Fget_clipboard_data ()
 {
+#if !defined(__GNUG__)
   int result = -1;
   lisp lstring = make_simple_string ();
   if (open_clipboard (app.toplev))
@@ -1494,14 +1509,21 @@ Fget_clipboard_data ()
   if (result == -1)
     return Qnil;
   return lstring;
+#else
+  return Qnil;
+#endif // __GNUG__
 }
 
 lisp
 Fclipboard_empty_p ()
 {
+#if !defined(__GNUG__)
   return boole (!IsClipboardFormatAvailable (CF_TEXT)
                 && (sysdep.WinNTp ()
                     || !IsClipboardFormatAvailable (CF_UNICODETEXT)));
+#else
+  return Qnil;
+#endif // __GNUG__
 }
 
 textprop *

@@ -1,8 +1,11 @@
 #include "ed.h"
+#if !defined(__GNUG__)
 #include "environ.h"
 #include "conf.h"
 #include "fnkey.h"
+#endif // __GNUG__
 
+#if !defined(__GNUG__)
 const char Registry::base[] = "Software\\Free Software\\Xyzzy\\";
 const char Registry::Settings[] = "Settings";
 
@@ -564,6 +567,7 @@ Fsi_performance_counter ()
     return make_integer (*(large_int *)&x);
   return Fget_internal_real_time ();
 }
+#endif //__GNUG__
 
 lisp
 Fsoftware_type ()
@@ -625,6 +629,7 @@ Fos_csd_version ()
   return xsymbol_value (Vos_csd_version);
 }
 
+#if !defined(__GNUG__)
 void
 init_environ ()
 {
@@ -689,6 +694,7 @@ init_environ ()
       break;
     }
 }
+#endif // __GNUG__
 
 lisp
 Fget_windows_directory ()
@@ -702,6 +708,7 @@ Fget_system_directory ()
   return xsymbol_value (Qsystem_dir);
 }
 
+#if !defined(__GNUG__)
 int environ::save_window_size = 1;
 int environ::save_window_position = 1;
 int environ::restore_window_size;
@@ -840,6 +847,7 @@ environ::save_geometry ()
   write_conf (cfgMisc, cfgFoldLineNumMode, Buffer::b_default_linenum_mode);
   flush_conf ();
 }
+#endif // __GNUG__
 
 lisp
 Fsi_getenv (lisp var)

@@ -1,10 +1,121 @@
 CXX := g++
-CXXFLAGS := -DDEBUG #-DDEBUG_GC
+CXXFLAGS = -g -DDEBUG -D_M_IX86 -D__XYZZY__
+CXXFLAGS += --input-charset=CP932  --exec-charset=CP932
+CXXFLAGS += #-DDEBUG_GC
 RM := rm -f
+LIBS :=
+
+FINAL_TARGET := xyzzy
 
 INC = \
 -I-/usr/include \
--I-. \
+-I-.\
+
+SRCS := \
+	alloc.cc \
+	array.cc \
+	assert.cc \
+	backq.cc \
+	bignum.cc \
+	binfo.cc \
+	Buffer.cc \
+	bytecode.cc \
+	byte-stream.cc \
+	ces.cc \
+	encoding.cc \
+	environ.cc \
+	char.cc \
+	chname.cc \
+	chunk.cc \
+	chtab.cc \
+	data.cc \
+	dumpver.cc \
+	eval.cc \
+	fileio.cc \
+	hash.cc \
+	hashpjw.cc \
+	init_unix.cc \
+	insdel.cc \
+	keymap.cc \
+	list.cc \
+	lex.cc \
+	largeint.cc \
+	lprint.cc \
+	lread.cc \
+	main.cc \
+	move.cc \
+	mman.cc \
+	msgdef.cc \
+	number.cc \
+	package.cc \
+	pathname.cc \
+	pred.cc \
+	random.cc \
+	regex.cc \
+	search.cc \
+	sequence.cc \
+	signal.cc \
+	symbol.cc \
+	vector.cc \
+	StrBuf.cc \
+	stream.cc \
+	structure.cc \
+	string.cc \
+	symtable.cc \
+	syntax.cc \
+	toplev_unix.cc \
+	utils.cc \
+	ucs2.cc \
+	undo.cc \
+	version.cc \
+	Window.cc \
+	wstream.cc \
+	xlist.cc
+
+#	minibuf.cc \
+
+
+OBJS = $(SRCS:.cc=.o)
+
+### rules ###
+
+all: $(FINAL_TARGET) dpp $(includes)
+$(FINAL_TARGET): $(OBJS)
+	$(CXX) $(LDFLAGS) -o $@ $(OBJS)
+
+includes: vars-decl.h fns-decl.h msgcode.h
+
+$(OBJS): mk.depend
+
+%.o : %.cc 
+	$(CXX) $(CXXFLAGS) $(INC) -c $<
+
+%.h : %.d
+	./dpp $< $@
+
+msgcode.h: gen-msg
+	./gen-msg -enum > $@
+
+msgdef.cc: gen-msg
+	./gen-msg -c > $@
+
+utf2sjis.h: gen-utf2sjis
+	./gen-utf2sjis > $@
+
+char-width.h: gen-char-width
+	./gen-char-width > $@
+
+ibmext.h: gen-ibmext
+	./gen-ibmext > $@
+
+gen-syms: gen-syms.cc symbol.h function.h
+	$(CXX) -o $@ $<
+
+gen-ctab: gen-ctab.cc chtype.h
+	$(CXX) -o $@ $<
+
+gen-msg: gen-msg.cc chtab.cc chtype.h msgdef.h
+	$(CXX) --input-charset=CP932  --exec-charset=CP932 -o $@ $<
 
 vars-decl.h: gen-syms
 	./gen-syms -vars > $@
@@ -18,15 +129,50 @@ symtable.cc: gen-syms
 dumpver.cc: gen-syms version.h
 	./gen-syms -version > $@
 
-gen-syms: gen-syms.cc symbol.h function.h
+chtab.cc: gen-ctab
+	./gen-ctab > $@
+
+gen-utf2sjis: gen-utf2sjis.cc
 	$(CXX) -o $@ $<
 
-PHONY: clean distclean
+gen-char-width: gen-char-width.cc jisx0212-width.h
+	$(CXX) -o $@ $<
+
+gen-ibmext: gen-ibmext.cc ucs2tab.h
+	$(CXX) -o $@ $<
+
+dpp:
+	$(CXX) -o dpp dpp.cc
+
+dep: msgdef.cc symtable.cc
+	$(CXX) -MM -MG $(SRCS) > mk.depend
+
+-include mk.depend
+
+encoding.o: ibmext.h
+ucs2.o: ucs2tab.h char-width.h
+
+
+PHONY: all clean distclean
 clean:
 	$(RM) ./*.o
-	$(RM) gen-syms
+	$(RM) ./gen-syms
+	$(RM) ./gen-ctab
+	$(RM) ./gen-msg
+	$(RM) ./gen-utf2sjis
+	$(RM) ./gen-char-width
+	$(RM) ./gen-ibmext
+	$(RM) ./dpp
 
 distclean:
 	$(RM) vars-decl.h
 	$(RM) fns-decs.h
 	$(RM) symtable.cc
+	$(RM) chtab.cc
+	$(RM) num-arith.h
+	$(RM) dumpver.cc
+	$(RM) msgcode.h
+	$(RM) msgdef.cc
+	$(RM) utf2sjis.h
+	$(RM) char-width.h
+	$(RM) ibmext.h

@@ -29,8 +29,10 @@ void map_backsl_to_sl (Char *, int);
 int match_suffixes (const char *, lisp);
 int set_device_dir (const char *, int);
 const char *get_device_dir (int);
+#if !defined(__GNUG__) ///TODO
 int strict_get_file_data (const char *, WIN32_FIND_DATA &);
 lisp make_file_info (const WIN32_FIND_DATA &);
+#endif // __GNUG__
 char *root_path_name (char *, const char *);
 
 /* lprint.cc */
@@ -74,14 +76,19 @@ void output_funcall_mark (FILE *);
 #endif
 
 /* toplev.cc */
+#if !defined(__GNUG__) ///TODO
 LRESULT CALLBACK toplevel_wndproc (HWND, UINT, WPARAM, LPARAM);
 LRESULT CALLBACK frame_wndproc (HWND, UINT, WPARAM, LPARAM);
 LRESULT CALLBACK client_wndproc (HWND, UINT, WPARAM, LPARAM);
 LRESULT CALLBACK modeline_wndproc (HWND, UINT, WPARAM, LPARAM);
+#endif // __GNUG__
 void main_loop ();
+#if !defined(__GNUG__) ///TODO
 int start_quit_thread ();
 int wait_process_terminate (HANDLE);
+#endif // __GNUG__
 lisp execute_string (lisp);
+#if !defined(__GNUG__) ///TODO
 int end_wait_cursor (int);
 void set_ime_caret ();
 void recalc_toplevel ();
@@ -89,9 +96,11 @@ void set_caret_blink_time ();
 void restore_caret_blink_time ();
 void toplev_gc_mark (void (*)(lisp));
 int toplev_accept_mouse_move_p ();
+#endif // __GNUG__
 
 /* minibuf.cc */
 lisp load_default (lisp, int);
+#if !defined(__GNUG__) ///TODO
 lisp load_history (lisp, int);
 lisp load_history (lisp, int, lisp);
 lisp load_title (lisp, int);
@@ -99,6 +108,7 @@ lisp read_minibuffer (const Char *, long, lisp, lisp, lisp, lisp, int, int, int,
 lisp complete_read (const Char *, long, lisp, lisp, lisp, lisp, int, int);
 lisp read_filename (const Char *, long, lisp, lisp, lisp, lisp);
 lisp minibuffer_read_integer (const Char *, long);
+#endif // __GNUG__
 
 /* chname.cc */
 Char standard_char_name2Char (const Char *, int);
@@ -108,39 +118,50 @@ const char *function_Char2name (Char);
 const char *standard_Char2name (Char);
 
 /* process.cc */
+#if !defined(__GNUG__) ///TODO
 void read_process_output (WPARAM, LPARAM);
 void wait_process_terminate (WPARAM, LPARAM);
+#endif // __GNUG__
 int buffer_has_process (const Buffer *);
 int query_kill_subprocesses ();
 void process_gc_mark (void (*)(lisp));
 
 /* menu.cc */
+#if !defined(__GNUG__) ///TODO
 int init_menu_flags (lisp);
 void init_menu_popup (WPARAM, LPARAM);
 lisp lookup_menu_command (int);
 lisp track_popup_menu (lisp, lisp, const POINT *);
+#endif // __GNUG__
 
 /* dialogs.cc */
+#if !defined(__GNUG__) ///TODO
 void center_window (HWND);
 void set_window_icon (HWND);
 void init_list_column (HWND, int, const int *, const int *, int, const char *, const char *);
 void save_list_column_width (HWND, int, const char *, const char *);
 int lv_find_selected_item (HWND);
 int lv_find_focused_item (HWND);
+#endif // __GNUG__
 
 /* fileio.cc */
+#if !defined(__GNUG__) ///TODO
 int same_file_p (const char *, const char *);
 int make_temp_file_name (char *, const char * = 0, const char * = 0, HANDLE = 0, int = 0);
 void do_auto_save (int, int);
+#endif // __GNUG__
 
 /* Buffer.cc */
+#if !defined(__GNUG__) ///TODO
 void change_local_colors (const XCOLORREF *, int, int);
+#endif // __GNUG__
 void update_buffer_bar ();
 
 /* init.cc */
 void report_out_of_memory ();
 
 /* insdel.cc */
+#if !defined(__GNUG__) ///TODO
 struct CLIPBOARDTEXT
 {
   UINT fmt;
@@ -149,6 +170,7 @@ struct CLIPBOARDTEXT
 
 int make_clipboard_text (CLIPBOARDTEXT &, lisp, int);
 int make_string_from_clipboard_text (lisp, const void *, UINT, int);
+#endif // __GNUG__
 
 /* popup.cc */
 void erase_popup (int, int);
@@ -157,11 +179,13 @@ void erase_popup (int, int);
 void reload_caret_colors ();
 
 /* listen.cc */
+#if !defined(__GNUG__) ///TODO
 void start_listen_server ();
 void init_listen_server ();
 void end_listen_server ();
 int read_listen_server (WPARAM, LPARAM);
 extern UINT wm_private_xyzzysrv;
+#endif // __GNUG__
 
 /* ces.cc */
 void init_char_encoding ();
@@ -173,13 +197,17 @@ int to_lang (lisp);
 lisp from_lang (int);
 
 /* Window.cc */
+#if !defined(__GNUG__) ///TODO
 void ForceSetForegroundWindow (HWND);
+#endif // __GNUG__
 
 /* usertool.cc */
 lisp get_tooltip_text (lisp);
 
 /* stdctl.cc */
+#if !defined(__GNUG__) ///TODO
 void stdctl_hook_init (HINSTANCE);
+#endif // __GNUG__
 int stdctl_operation (int);
 
 #endif

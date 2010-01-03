@@ -1,11 +1,18 @@
 #include <stddef.h>
-#include <share.h>
-#include <io.h>
+
+#if defined(_MSC_VER)
+# include <share.h>
+# include <io.h>
+#endif // _MSC_VER
+
 #include <setjmp.h>
 #include "ed.h"
 #include "lex.h"
 #include "symtable.h"
-#include "mainframe.h"
+
+#if defined(_MSC_VER)
+# include "mainframe.h"
+#endif // _MSC_VER
 
 lisp Qnil;
 lisp Qunbound;
@@ -16,6 +23,18 @@ lex_env *lex_env::le;
 int suppress_gc::sg_suppress_p;
 static nonlocal_data default_nonlocal_data;
 nonlocal_data *nonlocal_jump::d = &default_nonlocal_data;
+
+#if defined(__GNUG__)
+int ldataP::ld_nwasted;
+char *ldataP::ld_upper_bound;
+char *ldataP::ld_lower_bound;
+
+# define DECLARE_LDATA(a, b) \
+  template <class T, u_int F> ldataP ldata <a, b>::l_ld; \
+  template <class T, u_int F> int ldata <a, b>::l_nuses; \
+  template <class T, u_int F> int ldata <a, b>::l_nfrees;
+# include "dataP_unix.h"
+#endif // __GNUG__
 
 int
 find_zero_bit (u_long *p, int size)
@@ -145,7 +164,11 @@ static int
 find_object (lisp obj)
 {
 #define DECLARE_LDATA(a, b) if (ldata <a, b>::find ((char *)obj)) return 1;
-#include "dataP.h"
+#if defined(_MSC_VER)
+# include "dataP.h"
+#else  // __GNUG__
+# include "dataP_unix.h"
+#endif // __GNUG__
   return 0;
 }
 
@@ -153,7 +176,11 @@ void
 dummy_for_instance ()
 {
 #define DECLARE_LDATA(a, b) ldata <a, b>::lalloc ();
-#include "dataP.h"
+#if defined(_MSC_VER)
+# include "dataP.h"
+#else  // __GNUG__
+# include "dataP_unix.h"
+#endif // __GNUG__
 }
 
 template <class T, u_int F>
@@ -376,14 +403,20 @@ void
 cleanup_lisp_objects ()
 {
 #ifndef DEBUG
+# if defined(_MSC_VER)
   ldata <lstream, Tstream>::cleanup ();
   ldata <lwin32_menu, Twin32_menu>::cleanup ();
   ldata <lwin32_dde_handle, Twin32_dde_handle>::cleanup ();
   ldata <loledata, Toledata>::cleanup ();
   ldata <lwait_object, Twait_object>::cleanup ();
+# endif // _MSC_VER
 #else
 # define DECLARE_LDATA(a, b) ldata <a, b>::cleanup ();
+#if defined(_MSC_VER)
 # include "dataP.h"
+#else  // __GNUG__
+# include "dataP_unix.h"
+#endif // __GNUG__
 #endif
 }
 
@@ -592,11 +625,13 @@ gc_mark_object (lisp object)
         case Twait_object:
           return;
 
+#if defined(_MSC_VER)
         case Toledata:
           if (!xoledata_event (object))
             return;
           object = xoledata_event (object)->handlers ();
           break;
+#endif // _MSC_VER
 
         case Tprocess:
           gc_mark_object (xprocess_buffer (object));
@@ -668,17 +703,20 @@ gc_mark_object (lisp object)
             return;
           }
 
+#if defined(_MSC_VER)
         case Twin32_menu:
           gc_mark_object (xwin32_menu_init (object));
           gc_mark_object (xwin32_menu_tag (object));
           object = xwin32_menu_command (object);
           break;
+#endif // _MSC_VER
 
         case Tchunk:
           gc_mark_object (xchunk_type (object));
           object = xchunk_owner (object);
           break;
 
+#if defined(_MSC_VER)
         case Tdll_module:
           object = xdll_module_name (object);
           break;
@@ -691,6 +729,7 @@ gc_mark_object (lisp object)
         case Tc_callable:
           object = xc_callable_function (object);
           break;
+#endif // _MSC_VER
 
         case Tenvironment:
           gc_mark_object (xenvironment_var (object));
@@ -788,8 +827,10 @@ gc_mark_in_stack ()
         continue;
 
       ldata_rep *r = (ldata_rep *)(pointer_t (p) & ~LDATA_PAGE_MASK);
+#if defined(_MSC_VER)
       if (IsBadWritePtr (r, LDATA_PAGE_SIZE))
         continue;
+#endif // _MSC_VER
 
       int index = bit_index (p);
       if (bitisset (r->dr_used, index) && !bitisset (r->dr_gc, index)
@@ -867,10 +908,12 @@ gc_mark_object ()
         gc_mark_object (t->t_tag);
     }
 
+#if !defined(__GNUG__) ///<@todo
   toplev_gc_mark (gc_mark_object);
   process_gc_mark (gc_mark_object);
   g_frame.gc_mark (gc_mark_object);
   app.user_timer.gc_mark (gc_mark_object);
+#endif //__GNUG__
 
   gc_mark_in_stack ();
 
@@ -887,20 +930,27 @@ gc (int nomsg)
   if (suppress_gc::gc_suppressed_p ())
     return;
 
+#if !defined(__GNUG__) ///<TODO
   app.in_gc = 1;
-
+#endif //__GNUG__
   if (nomsg < 0)
     nomsg = xsymbol_value (Vgarbage_collection_messages) == Qnil;
 
+#if !defined(__GNUG__) ///<TODO
   int msglen = 0;
   if (!nomsg)
     msglen = app.status_window.text (get_message_string (Mgarbage_collecting));
+#endif //__GNUG__
 
   ldataP::ld_nwasted = 0;
   gc_mark_object ();
 
 #define DECLARE_LDATA(a, b) ldata <a, b>::sweep ();
-#include "dataP.h"
+#if defined(_MSC_VER)
+# include "dataP.h"
+#else  // __GNUG__
+# include "dataP_unix.h"
+#endif // __GNUG__
 
   bignum_allocated_bytes = 0;
 
@@ -911,6 +961,7 @@ gc (int nomsg)
   mark_stack_trace ();
 #endif
 
+#if !defined(__GNUG__) ///<TODO
   if (!nomsg)
     {
       if (msglen)
@@ -921,6 +972,7 @@ gc (int nomsg)
 
   _heapmin ();
   app.in_gc = 0;
+#endif //__GNUG__
 }
 
 lisp
@@ -931,7 +983,12 @@ Fgc (lisp nomsg)
   int i = 1;
 #define DECLARE_LDATA(a, b) \
   multiple_value::value (i++) = ldata <a, b>::countof ();
-#include "dataP.h"
+#if defined(_MSC_VER)
+# include "dataP.h"
+#else  // __GNUG__
+# include "dataP_unix.h"
+#endif // __GNUG__
+
   multiple_value::value (0) = Qnil;
   multiple_value::count () = i;
 #endif
@@ -962,15 +1019,17 @@ destruct_regexp (lisp regexp)
   ldata <lregexp, Tregexp>::unuse ((lregexp *)regexp);
 }
 
+#if defined(_MSC_VER)
 int ldataP::ld_nwasted;
 char *ldataP::ld_upper_bound;
 char *ldataP::ld_lower_bound;
 
-#define DECLARE_LDATA(a, b) \
+# define DECLARE_LDATA(a, b) \
   ldataP ldata <a, b>::l_ld; \
   int ldata <a, b>::l_nuses; \
   int ldata <a, b>::l_nfrees;
-#include "dataP.h"
+# include "dataP.h"
+#endif // _MSC_VER
 
 static void
 init_syms (lvars *v, lfns *f, lisp pkg, int self_bind)
@@ -1205,7 +1264,11 @@ combine_syms ()
 #define DECLARE_LDATA_BEGIN static const int ldata_begin = __LINE__;
 #define DECLARE_LDATA_END static const int ldata_end = __LINE__;
 #define DECLARE_LDATA(a, b)
-#include "dataP.h"
+#if defined(_MSC_VER)
+# include "dataP.h"
+#else  // __GNUG__
+# include "dataP_unix.h"
+#endif // __GNUG__
 static const int nobject_type = ldata_end - ldata_begin - 1;
 
 struct dump_header
@@ -1591,6 +1654,7 @@ ldata <T, F>::array_fixup_displaced_offset ()
         fixup_displaced_offset (d);
 }
 
+#if !defined(__GNUG__) ///<TODO
 static void
 dump_object (FILE *fp, const lsimple_vector *d, int n,
              const u_long used[LDATA_MAX_OBJECTS_PER_LONG])
@@ -2650,6 +2714,7 @@ rdump_object (FILE *fp, lenvironment *d, int n, const u_long used[LDATA_MAX_OBJE
         d->lfns = Qnil;
       }
 }
+#endif //__GNUG__
 
 template <class T, u_int F>
 void
@@ -2658,7 +2723,9 @@ ldata <T, F>::dump_reps (FILE *fp)
   for (const ldata_rep *lp = l_ld.ld_rep; lp; lp = lp->dr_next)
     {
       writef (fp, lp->dr_used, sizeof lp->dr_used);
+#if !defined(__GNUG__) ///<TODO
       dump_object (fp, (const T *)lp->dr_data, LDATA_NOBJS (T), lp->dr_used);
+#endif //__GNUG__
     }
 }
 
@@ -2673,12 +2740,16 @@ Fdump_xyzzy (lisp filename)
   if (!filename || filename == Qnil)
     {
       filename = xsymbol_value (Qdump_image_path);
+#if !defined(__GNUG__) ///<TODO
       path = app.dump_image;
+#endif //__GNUG__
     }
   else
     {
+#if !defined(__GNUG__) ///<TODO
       pathname2cstr (filename, path_buf);
       path = path_buf;
+#endif //__GNUG__
     }
 
   protect_gc gcpro (filename);
@@ -2688,7 +2759,11 @@ Fdump_xyzzy (lisp filename)
   int i = 0;
   int counts[nobject_type];
 #define DECLARE_LDATA(a, b) counts[i++] = ldata <a, b>::count_reps ();
-#include "dataP.h"
+#if defined(_MSC_VER)
+# include "dataP.h"
+#else  // __GNUG__
+# include "dataP_unix.h"
+#endif // __GNUG__
 
   nreps = 0;
   for (i = 0; i < nobject_type; i++)
@@ -2698,7 +2773,11 @@ Fdump_xyzzy (lisp filename)
   ldata_rep **r = reps;
   i = 0;
 #define DECLARE_LDATA(a, b) ldata <a, b>::get_reps (r); r += counts[i++];
-#include "dataP.h"
+#if defined(_MSC_VER)
+# include "dataP.h"
+#else  // __GNUG__
+# include "dataP_unix.h"
+#endif // __GNUG__
 
   addr_order *ap = (addr_order *)alloca (sizeof *ap * nreps);
   addr_orderp = ap;
@@ -2726,7 +2805,11 @@ Fdump_xyzzy (lisp filename)
   writef (fp, counts, sizeof counts);
 
 #define DECLARE_LDATA(a, b) ldata <a, b>::dump_reps (fp);
-#include "dataP.h"
+#if defined(_MSC_VER)
+# include "dataP.h"
+#else  // __GNUG__
+# include "dataP_unix.h"
+#endif // __GNUG__
   long off = ftell (fp);
   head.file_size = off;
   head.file_size_not = ~off;
@@ -2751,6 +2834,7 @@ ldata <T, F>::rdump_reps (FILE *fp)
 static int
 rdump_xyzzy (FILE *fp)
 {
+#if !defined(__GNUG__) ///<TODO
   dump_header head;
   readf (fp, &head, sizeof head);
   if (head.magic != DMAGIC
@@ -2775,18 +2859,28 @@ rdump_xyzzy (FILE *fp)
   ldata_rep **lp = laddrp;
 #define DECLARE_LDATA(a, b) \
   ldata <a, b>::alloc_reps (lp, counts[i]); lp += counts[i++];
-#include "dataP.h"
+#if defined(_MSC_VER)
+# include "dataP.h"
+#else  // __GNUG__
+# include "dataP_unix.h"
+#endif // __GNUG__
 
   Qnil = rlmap (head.nil);
 
 #define DECLARE_LDATA(a, b) ldata <a, b>::rdump_reps (fp);
-#include "dataP.h"
+#if defined(_MSC_VER)
+# include "dataP.h"
+#else  // __GNUG__
+# include "dataP_unix.h"
+#endif // __GNUG__
 
+#endif //__GNUG__
   return 1;
 }
 
 static int dump_flag;
 
+#if !defined(__GNUG__) ///<TODO
 int
 rdump_xyzzy ()
 {
@@ -2809,21 +2903,34 @@ rdump_xyzzy ()
     {
 #define DECLARE_LDATA(a, b) /* empty */
 #define DECLARE_LARRAY(a, b) ldata<a, b>::array_fixup_displaced_offset ();
-#include "dataP.h"
+#if defined(_MSC_VER)
+# include "dataP.h"
+#else  // __GNUG__
+# include "dataP_unix.h"
+#endif // __GNUG__
 
       ldata <lchunk, Tchunk>::chunk_fixup_data_offset ();
 
 #define DECLARE_LDATA(a, b) ldata <a, b>::link_unused ();
-#include "dataP.h"
+#if defined(_MSC_VER)
+# include "dataP.h"
+#else  // __GNUG__
+# include "dataP_unix.h"
+#endif // __GNUG__
     }
   else
     {
 #define DECLARE_LDATA(a, b) ldata <a, b>::free_all_reps ();
-#include "dataP.h"
+#if defined(_MSC_VER)
+# include "dataP.h"
+#else  // __GNUG__
+# include "dataP_unix.h"
+#endif // __GNUG__
     }
 
   return dump_flag;
 }
+#endif //__GNUG__
 
 lisp
 Fxyzzy_dumped_p ()

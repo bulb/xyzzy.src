@@ -352,14 +352,22 @@ copy_into_vector (lisp vector, lisp sequences)
           break;
 
         case SEQ_VECTOR:
+#if defined(_MSC_VER)
           l = min (ve - v, xvector_length (seq));
+#elif defined(__GNUG__)
+          l = min (int(ve - v), (int)xvector_length (seq));
+#endif // __GNUG__
           bcopy (xvector_contents (seq), v, l);
           v += l;
           break;
 
         case SEQ_STRING:
           {
+#if defined(_MSC_VER)
             l = min (ve - v, xstring_length (seq));
+#elif defined(__GNUG__)
+            l = min (int(ve - v), (int)xstring_length (seq));
+#endif // __GNUG__
             for (const Char *s = xstring_contents (seq), *se = s + l;
                  s < se; s++)
               *v++ = make_char (*s);
@@ -394,7 +402,11 @@ copy_into_string (lisp string, lisp sequences)
 
         case SEQ_VECTOR:
           {
+#if defined(_MSC_VER)
             l = min (se - s, xvector_length (seq));
+#elif defined(__GNUG__)
+            l = min (int(se - s), int (xvector_length (seq)));
+#endif // __GNUG__
             for (lisp *v = xvector_contents (seq), *ve = v + l; v < ve; v++)
               {
                 check_char (*v);
@@ -404,7 +416,11 @@ copy_into_string (lisp string, lisp sequences)
           }
 
         case SEQ_STRING:
+#if defined(_MSC_VER)
           l = min (se - s, xstring_length (seq));
+#elif defined(__GNUG__)
+          l = min (int(se - s), int (xstring_length (seq)));
+#endif // __GNUG__
           bcopy (xstring_contents (seq), s, l);
           s += l;
           break;

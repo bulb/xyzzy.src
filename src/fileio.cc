@@ -162,15 +162,21 @@ Buffer::read_file_contents (ReadFileContext &rfc, xread_stream &sin)
 {
   int nchunks = 1;
   long total_bytes = sin.input_stream ().rest_chars ();
+#if !defined(__GNUG__)
   DWORD last_tick = GetTickCount () + 1000;
+#endif // __GNUG__
   char msg[64];
 
   *msg = 0;
+#if !defined(__GNUG__)
   Fbegin_wait_cursor ();
+#endif // __GNUG__
   rfc.r_chunk = read_chunk (rfc, sin);
   if (!rfc.r_chunk)
     {
+#if !defined(__GNUG__)
       Fend_wait_cursor ();
+#endif // __GNUG__
       return 0;
     }
   Chunk *cp, *prev;
@@ -178,6 +184,7 @@ Buffer::read_file_contents (ReadFileContext &rfc, xread_stream &sin)
     {
       cp->c_next = read_chunk (rfc, sin);
 
+#if !defined(__GNUG__)
       DWORD t = GetTickCount ();
       if (int (t - last_tick) >= 300)
         {
@@ -187,10 +194,13 @@ Buffer::read_file_contents (ReadFileContext &rfc, xread_stream &sin)
                    total_bytes);
           app.status_window.text (msg);
         }
+#endif // __GNUG__
     }
 
+#if !defined(__GNUG__)
   if (*msg)
     app.status_window.restore ();
+#endif // __GNUG__
 
   for (prev = 0, cp = rfc.r_chunk; cp; cp = cp->c_next)
     {
@@ -206,14 +216,18 @@ Buffer::read_file_contents (ReadFileContext &rfc, xread_stream &sin)
       if (!cp)
         {
           rfc.r_chunk = 0;
+#if !defined(__GNUG__)
           Fend_wait_cursor ();
+#endif // __GNUG__
           return 0;
         }
       cp->c_next = 0;
     }
 
   fixup_nl_code (rfc);
+#if !defined(__GNUG__)
   Fend_wait_cursor ();
+#endif // __GNUG__
   return 1;
 }
 
@@ -228,7 +242,11 @@ static eol_code
 detect_eol_code (const mapf &mf)
 {
   const u_char *p = (const u_char *)mf.base ();
+#if defined(_MSC_VER)
   const u_char *const pe = p + min (0x8000UL, mf.size ());
+#else  // __GNUG__
+  const u_char *const pe = p + min (0x8000UL, (u_long)mf.size ());
+#endif // __GNUG__
 
   if (p < pe)
     {
@@ -254,12 +272,14 @@ Buffer::read_file_contents (ReadFileContext &rfc, const char *filename,
   rfc.r_cr = 0;
 
   mapf mf;
+#if !defined(__GNUG__)
   if (!mf.open (filename, FILE_FLAG_SEQUENTIAL_SCAN, 1))
     {
       rfc.r_status = ReadFileContext::RFCS_OPEN;
       rfc.r_errcode = GetLastError ();
       return 0;
     }
+#endif // __GNUG__
 
   const char *bb = (const char *)mf.base () + read_offset;
   const char *be = (const char *)mf.base () + mf.size ();
@@ -269,6 +289,7 @@ Buffer::read_file_contents (ReadFileContext &rfc, const char *filename,
 
   xinput_strstream str (bb, be - bb);
 
+#if !defined(__GNUG__)
   WIN32_FIND_DATA fd;
   if (WINFS::get_file_data (filename, fd))
     rfc.r_modtime = fd.ftLastWriteTime;
@@ -314,15 +335,20 @@ Buffer::read_file_contents (ReadFileContext &rfc, const char *filename,
       rfc.r_status = ReadFileContext::RFCS_IOERR;
       rfc.r_errcode = ERROR_FILE_CORRUPT;
     }
+#endif // __GNUG__
   return 0;
 }
 
 int
 Buffer::readin_chunk (ReadFileContext &rfc, xread_stream &sin)
 {
+#if !defined(__GNUG__)
   Fbegin_wait_cursor ();
+#endif // __GNUG__
   rfc.r_chunk = read_chunk (rfc, sin);
+#if !defined(__GNUG__)
   Fend_wait_cursor ();
+#endif // __GNUG__
   if (!rfc.r_chunk)
     return 0;
   fixup_nl_code (rfc);
@@ -342,14 +368,17 @@ Buffer::readin_chunk (ReadFileContext &rfc, const char *filename)
   rfc.r_cr = 0;
 
   mapf mf;
+#if !defined(__GNUG__)
   if (!mf.open (filename, FILE_FLAG_SEQUENTIAL_SCAN, 1))
     {
       rfc.r_status = ReadFileContext::RFCS_OPEN;
       rfc.r_errcode = GetLastError ();
       return 0;
     }
+#endif // __GNUG__
   xinput_strstream str ((const char *)mf.base (), mf.size ());
 
+#if !defined(__GNUG__)
   try
     {
       rfc.r_expect_char_encoding = detect_encoding (mf, 0x8000);
@@ -368,15 +397,21 @@ Buffer::readin_chunk (ReadFileContext &rfc, const char *filename)
       rfc.r_status = ReadFileContext::RFCS_IOERR;
       rfc.r_errcode = ERROR_FILE_CORRUPT;
     }
+#endif // __GNUG__
   return 0;
 }
 
 struct WriteCharException
 {
   int error;
+#if defined(_MSC_VER)
   WriteCharException () : error (GetLastError ()) {}
+#else  // __GNUG__
+  WriteCharException () {} ///@todo
+#endif // __GNUG__
 };
 
+#if !defined(__GNUG__)
 void
 Buffer::file_modtime (FileTime &ft)
 {
@@ -385,19 +420,26 @@ Buffer::file_modtime (FileTime &ft)
   else
     ft.clear ();
 }
+#endif // __GNUG__
 
 int
 Buffer::verify_modtime ()
 {
+#if defined(_MSC_VER)
   FileTime ft;
   file_modtime (ft);
   return ft.voidp () || ft == b_modtime;
+#else  // __GNUG__
+  return 1;
+#endif // __GNUG__
 }
 
 lisp
 Fclear_visited_file_modtime (lisp buffer)
 {
+#if !defined(__GNUG__)
   Buffer::coerce_to_buffer (buffer)->b_modtime.clear ();
+#endif // __GNUG__
   return Qnil;
 }
 
@@ -419,18 +461,28 @@ pathname_equal (const char *path1, const char *path2)
 {
   int l1 = strlen (path1);
   int l2 = strlen (path2);
+#if defined(_MSC_VER)
   if (l1 == l2)
     return !_memicmp (path1, path2, l1);
   if (l1 == l2 + 1)
     return path1[l2] == '/' && !_memicmp (path1, path2, l2);
   if (l2 == l1 + 1)
     return path2[l1] == '/' && !_memicmp (path1, path2, l1);
+#else  // __GNUG__
+  if (l1 == l2)
+    return !memcmp (path1, path2, l1);
+  if (l1 == l2 + 1)
+    return path1[l2] == '/' && !memcmp (path1, path2, l2);
+  if (l2 == l1 + 1)
+    return path2[l1] == '/' && !memcmp (path1, path2, l1);
+#endif // __GNUG__
   return 0;
 }
 
 int
 same_file_p (const char *path1, const char *path2)
 {
+#if defined(_MSC_VER)
   if (pathname_equal (path1, path2))
     return WINFS::GetFileAttributes (path1) != -1;
 
@@ -457,6 +509,9 @@ same_file_p (const char *path1, const char *path2)
   if (h2 != INVALID_HANDLE_VALUE)
     CloseHandle (h2);
   return eq;
+#else  // __GNUG__
+  return 1;
+#endif // __GNUG__
 }
 
 static int
@@ -465,14 +520,18 @@ fatfs_basename (char *name)
   char *dot = jindex (name, '.');
   if (!dot)
     {
+#if !defined(__GNUG__) ///@todo check_kanji2
       if (strlen (name) > 8)
         name[check_kanji2 (name, 8) ? 7 : 8] = 0;
+#endif // __GNUG__
       return 0;
     }
   else
     {
+#if !defined(__GNUG__)
       if (dot - name > 8)
         strcpy (name + (check_kanji2 (name, 8) ? 7 : 8), dot);
+#endif // __GNUG__
       return 1;
     }
 }
@@ -498,6 +557,7 @@ fatfs_append_suffix (char *name, int c)
   dot[l + 1] = 0;
 }
 
+#if !defined(__GNUG__)
 static int
 get_volume_info (const char *path, char *volname, DWORD volsize,
                  DWORD *serial, DWORD *maxl,
@@ -508,14 +568,20 @@ get_volume_info (const char *path, char *volname, DWORD volsize,
                                       volname, volsize, serial,
                                       maxl, flags, fsname, fssize);
 }
+#endif // __GNUG__
 
 static int
 fs_support_long_name (const char *path)
 {
   DWORD maxl, flags;
+#if defined(_MSC_VER)
   return get_volume_info (path, 0, 0, 0, &maxl, &flags, 0, 0) && maxl > 12;
+#else  // __GNUG__
+  return 0;
+#endif // __GNUG__
 }
 
+#if !defined(__GNUG__)
 static int
 make_temp_file_name (char *path, char *p, int dirp, HANDLE tmpl,
                      int nchars, int &serial, int max_serial)
@@ -567,6 +633,7 @@ make_temp_file_name (char *dir, const char *prefix, const char *suffix,
 
   return make_temp_file_name (dir, d, dirp, tmpl, 4, serial, max_serial);
 }
+#endif // __GNUG__
 
 static int
 backup_dirname (char *backup, const char *original, Buffer *bp)
@@ -605,6 +672,7 @@ Buffer::make_auto_save_file_name (char *name)
 {
   if (!stringp (lfile_name))
     {
+#if defined(_MSC_VER)
       GetModuleFileName (0, name, PATH_MAX);
       char *p = jrindex (name, '\\');
       if (!p)
@@ -614,6 +682,9 @@ Buffer::make_auto_save_file_name (char *name)
 
       static int serial = 0;
       return make_temp_file_name (name, p, 0, 0, 3, serial, 36 * 36 * 36);
+#else
+      return 0;
+#endif // __GNUG__
     }
   else
     {
@@ -662,8 +733,10 @@ Buffer::delete_auto_save_file ()
 
   if (!stringp (lfile_name) || !b_done_auto_save)
     return;
+#if !defined(__GNUG__)
   if (make_auto_save_file_name (name))
     WINFS::DeleteFile (name);
+#endif // __GNUG__
   b_done_auto_save = 0;
 }
 
@@ -680,9 +753,11 @@ pack_backupfile (char *old_name, char *oe, u_char *bitmap, int max_versions)
         while (j < i)
           {
             sprintf (ne, "%d~", j++);
+#if !defined(__GNUG__)
             if (WINFS::MoveFile (old_name, new_name)
                 || GetLastError () != ERROR_ALREADY_EXISTS)
               break;
+#endif // __GNUG__
           }
       }
   return j;
@@ -698,6 +773,7 @@ Buffer::make_backup_file_name (char *backup, const char *xoriginal)
       return Ecannot_create_backup_file;
     }
   int fail = 0;
+#if !defined(__GNUG__)
   int longname = fs_support_long_name (original);
   strcpy (backup, original);
   char *name = find_last_slash (backup);
@@ -847,6 +923,7 @@ Buffer::make_backup_file_name (char *backup, const char *xoriginal)
       *backup = 0;
       return Ecannot_delete_backup_file;
     }
+#endif // __GNUG__
   return fail;
 }
 
@@ -884,9 +961,13 @@ public:
 class xwrite_buffer
 {
 public:
+#if defined(_MSC_VER)
   HANDLE w_hfile;
 
   xwrite_buffer () : w_hfile (INVALID_HANDLE_VALUE) {}
+#else  // __GNUG__
+  xwrite_buffer () {}
+#endif // __GNUG__
   ~xwrite_buffer () {close ();}
   void close ();
   int open (const char *, DWORD);
@@ -896,30 +977,38 @@ public:
 int
 xwrite_buffer::open (const char *path, DWORD mode)
 {
+#if !defined(__GNUG__)
   w_hfile = WINFS::CreateFile (path, GENERIC_WRITE, 0, 0, mode,
                                FILE_ATTRIBUTE_NORMAL | FILE_FLAG_SEQUENTIAL_SCAN, 0);
   return w_hfile != INVALID_HANDLE_VALUE;
+#else
+  return 0;
+#endif // __GNUG__
 }
 
 void
 xwrite_buffer::close ()
 {
+#if !defined(__GNUG__)
   if (w_hfile != INVALID_HANDLE_VALUE)
     {
       CloseHandle (w_hfile);
       w_hfile = INVALID_HANDLE_VALUE;
     }
+#endif // __GNUG__
 }
 
 void
 xwrite_buffer::write (const void *b, DWORD l) const
 {
+#if !defined(__GNUG__)
   if (l)
     {
       DWORD r;
       if (!WriteFile (w_hfile, b, l, &r, 0) || r != l)
         throw WriteCharException ();
     }
+#endif // __GNUG__
 }
 
 int
@@ -983,6 +1072,7 @@ Buffer::write_region (const char *filename, point_t p1, point_t p2,
   xwrite_buffer xbuf;
   wr_param.error_open = 1;
 
+#if !defined(__GNUG__)
   LONG lo, hi;
   if (append && xbuf.open (filename, OPEN_EXISTING))
     {
@@ -1008,12 +1098,14 @@ Buffer::write_region (const char *filename, point_t p1, point_t p2,
   wr_param.error_open = 0;
 
   Fbegin_wait_cursor ();
+#endif // __GNUG__
 
   Point point;
   set_point_no_restrictions (point, p1);
   xinput_buffer_stream sin (point.p_chunk, point.p_offset, p2 - p1);
   encoding_output_stream_helper sout (wr_param.encoding, sin, wr_param.eol);
   int r = write_region (sout, xbuf, wr_param.error);
+#if !defined(__GNUG__)
   if (r == -1)
     {
       if (append)
@@ -1027,6 +1119,7 @@ Buffer::write_region (const char *filename, point_t p1, point_t p2,
     }
 
   Fend_wait_cursor ();
+#endif // __GNUG__
   return r;
 }
 
@@ -1036,6 +1129,7 @@ Buffer::write_region (const char *filename, point_t p1, point_t p2,
 static int
 make_backup_file (const char *filename, char *backup, int &result)
 {
+#if !defined(__GNUG__)
   if (!sysdep.WinNTp ())
     {
       char *name = find_last_slash (backup);
@@ -1077,6 +1171,9 @@ make_backup_file (const char *filename, char *backup, int &result)
         }
     }
   return WINFS::MoveFile (filename, backup);
+#else  // __GNUG__
+  return 0;
+#endif // __GNUG__
 }
 
 static void
@@ -1087,6 +1184,7 @@ make_temp_file (char *tmpname, const char *filename)
   if (!p)
     file_error (Ecannot_make_temp_file_name);
   p[1] = 0;
+#if !defined(__GNUG__)
   if (!make_temp_file_name (tmpname))
     {
       int e = GetLastError ();
@@ -1097,6 +1195,7 @@ make_temp_file (char *tmpname, const char *filename)
         }
       file_error (Ecannot_make_temp_file_name);
     }
+#endif // __GNUG__
 }
 
 class keep_lock
@@ -1151,6 +1250,7 @@ Buffer::save_buffer (lisp encoding, lisp eol)
   if (special_file_p (filename))
     file_error (Eis_character_special_file, lfile_name);
 
+#if !defined(__GNUG__)
   DWORD filemode = WINFS::GetFileAttributes (filename);
   if (filemode != -1 && filemode & FILE_ATTRIBUTE_READONLY)
     file_error (Eis_write_protected, lfile_name);
@@ -1159,6 +1259,7 @@ Buffer::save_buffer (lisp encoding, lisp eol)
   if (!modtime.voidp () && modtime != b_modtime
       && !yes_or_no_p (Mdisk_file_has_changed))
     FEsilent_quit ();
+#endif // __GNUG__
 
   char tmpname[PATH_MAX + 1];
   char backup[PATH_MAX + 1];
@@ -1168,6 +1269,7 @@ Buffer::save_buffer (lisp encoding, lisp eol)
   lisp by_copying = symbol_value (Vbackup_by_copying, this);
   if (by_copying == Kremote)
     {
+#if !defined(__GNUG__)
       switch (GetDriveType (root_path_name (tmpname, filename)))
         {
         case DRIVE_REMOVABLE:
@@ -1177,6 +1279,7 @@ Buffer::save_buffer (lisp encoding, lisp eol)
           by_copying = Qnil;
           break;
         }
+#endif // __GNUG__
     }
 
   if (by_copying != Qnil)
@@ -1184,6 +1287,7 @@ Buffer::save_buffer (lisp encoding, lisp eol)
       keep_lock lock (this);
       int real_backup = 0;
 
+#if !defined(__GNUG__)
       filemode = WINFS::GetFileAttributes (filename);
       if (filemode == -1)
         *backup = 0;
@@ -1208,6 +1312,7 @@ Buffer::save_buffer (lisp encoding, lisp eol)
           WINFS::DeleteFile (backup);
           file_error (e, lfile_name);
         }
+#endif // __GNUG__
 
       if (real_backup)
         b_make_backup = 1;
@@ -1224,8 +1329,10 @@ Buffer::save_buffer (lisp encoding, lisp eol)
           file_error (Ewrite_error, lfile_name);
         }
 
+#if !defined(__GNUG__)
       if (!real_backup && *backup)
         WINFS::DeleteFile (backup);
+#endif // __GNUG__
 
       lock.cancel_lock ();
     }
@@ -1248,6 +1355,7 @@ Buffer::save_buffer (lisp encoding, lisp eol)
 
       keep_lock lock (this);
 
+#if !defined(__GNUG__)
       filemode = WINFS::GetFileAttributes (filename);
       if (filemode != -1)
         {
@@ -1296,12 +1404,15 @@ Buffer::save_buffer (lisp encoding, lisp eol)
         }
 
       lock.cancel_lock ();
+#endif // __GNUG__
     }
 
   delete_auto_save_file ();
   b_modified = 0;
   b_need_auto_save = 0;
+#if !defined(__GNUG__)
   b_modtime.file_modtime (lfile_name, 0);
+#endif // __GNUG__
   modify_mode_line ();
   maybe_modify_buffer_bar ();
 
@@ -1309,7 +1420,9 @@ Buffer::save_buffer (lisp encoding, lisp eol)
   if (flock != Qnil && flock != Kedit)
     lock_file ();
 
+#if !defined(__GNUG__)
   save_modtime_undo (b_modtime);
+#endif // __GNUG__
 
   format_message (MFwrote_n_lines, nlines);
 
@@ -1401,6 +1514,7 @@ Fwrite_region (lisp from, lisp to, lisp filename, lisp append,
 lisp
 Buffer::lock_file (lisp name, int force)
 {
+#if defined(_MSC_VER)
   if (!force && file_locked_p ())
     return Qnil;
 
@@ -1447,6 +1561,9 @@ Buffer::lock_file (lisp name, int force)
   b_hlock = h;
 
   return result;
+#else  // __GNUG__
+  return Qnil;
+#endif // __GNUG__
 }
 
 int
@@ -1454,9 +1571,11 @@ Buffer::unlock_file ()
 {
   if (!file_locked_p ())
     return 0;
+#if !defined(__GNUG__)
   if (!CloseHandle (b_hlock))
     return 0;
   b_hlock = INVALID_HANDLE_VALUE;
+#endif // __GNUG__
   return 0;
 }
 

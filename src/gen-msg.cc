@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "cdecl.h"
-#include "chtype.h"
+# include "chtype.h"
 
 #include "chtab.cc"
 
@@ -48,13 +48,19 @@ print_quote_rc (const char *p)
           if (*p == '\\' || *p == '"')
             putchar (*p);
           putchar (*p);
+#if !defined(__GNUG__) ///TODO
           if (SJISP (*p++ & 0xff))
             putchar (*p++);
+#endif // __GNUG__
         }
     }
 }
 
+#if defined(_MSC_VER)
 void
+#else
+int
+#endif // __GNUG__
 main (int argc, char **argv)
 {
   if (argc == 1)
@@ -66,12 +72,20 @@ main (int argc, char **argv)
     }
   else if (!strcmp (argv[1], "-enum"))
     {
+#if defined(__GNUG__)
+      printf ("#ifndef _msgcode_h_\n");
+      printf ("# define _msgcode_h_\n\n");
+#endif // __GNUG__
       printf ("enum message_code\n{\n");
       int i;
       for (i = 0; i < numberof (msg) - 1; i++)
         printf ("  %s,\n", msg[i].ident);
       printf ("  %s\n", msg[i].ident);
       printf ("};\n");
+
+#if defined(__GNUG__)
+      printf ("#endif _msgcode_h_\n");
+#endif // __GNUG__
     }
   else if (!strcmp (argv[1], "-c"))
     {

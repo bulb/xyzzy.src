@@ -1,4 +1,10 @@
-#include <windows.h>
+#if defined(_MSC_VER)
+# include <windows.h>
+#elif defined(__GNUG__)
+# include <stdlib.h>
+# include <string.h>
+#endif // __GNUG__
+
 #include "alloc.h"
 
 struct alloc_page_rep
@@ -35,10 +41,15 @@ alloc_page::alloc_page (u_int size)
 
   if (!ap_page_size)
     {
+#if defined(_MSC_VER)
       SYSTEM_INFO si;
       GetSystemInfo (&si);
       ap_page_size = si.dwPageSize;
       ap_block_size = si.dwAllocationGranularity;
+#else // !_MSC_VER
+       ap_page_size = 4096; ///<TODO
+       ap_block_size = 65536; ///<TODO
+#endif // !_MSC_VER
     }
 
   ap_unit_size = max (size, ap_page_size);
@@ -57,6 +68,7 @@ alloc_page::alloc ()
     {
       if (!ap_rep)
         {
+#if defined(_MSC_VER)
           void *base = VirtualAlloc (0, ap_block_size,
                                      MEM_RESERVE, PAGE_NOACCESS);
           if (!base)
@@ -74,12 +86,22 @@ alloc_page::alloc ()
 
           assert (ap_rep == base);
 
+#else // !_MSC_VER
+          ///TODO
+          ap_block_size = 0x20000;
+          void *base = malloc (ap_block_size);
+          memset (base, 0, sizeof(ap_block_size));
+          if (base) {
+            ap_rep = (alloc_page_rep *)base;
+          }
+#endif // !_MSC_VER
           ap_rep->commit = 1;
         }
 
       for (u_int i = 0; i < ap_units_per_block; i++)
         if (!(ap_rep->commit & (1 << i)))
           {
+#if defined(_MSC_VER)
             void *base = (void *)((u_int (ap_rep) & ~(ap_block_size - 1))
                                   + i * ap_unit_size);
             void *p = VirtualAlloc (base, ap_unit_size,
@@ -89,6 +111,11 @@ alloc_page::alloc ()
 
             assert (p == base);
 
+#else // !_MSC_VER
+          ///TODO
+          void *p = malloc (ap_block_size);
+          memset (p, 0, sizeof (ap_block_size));
+#endif // !_MSC_VER
             ap_rep->commit |= (1 << i);
             return p;
           }
@@ -99,6 +126,7 @@ alloc_page::alloc ()
     }
   else
     {
+#if defined(_MSC_VER)
       void *p = VirtualAlloc (0, ap_unit_size, MEM_RESERVE, PAGE_READWRITE);
       if (!p)
         return 0;
@@ -111,6 +139,12 @@ alloc_page::alloc ()
         }
       assert (p == q);
       assert (!(pointer_t (q) % ap_block_size));
+#else // !_MSC_VER
+      ///TODO
+      ap_block_size = 0x10000;
+      void *q = malloc (ap_block_size);
+      memset (q, 0, sizeof (ap_block_size));
+#endif // !_MSC_VER
       return q;
     }
 }
@@ -119,6 +153,7 @@ void
 alloc_page::free (void *p)
 {
   assert (p);
+#if defined(_MSC_VER)
 
   if (ap_units_per_block)
     {
@@ -162,6 +197,9 @@ alloc_page::free (void *p)
       assert (!(pointer_t (p) & (ap_block_size - 1)));
       VirtualFree (p, 0, MEM_RELEASE);
     }
+#else // !_MSC_VER
+
+#endif // !_MSC_VER
 }
 
 fixed_heap::fixed_heap (u_int size)

@@ -1,6 +1,10 @@
+#if defined(__GNUG__)
+# include "cdecl.h"
+#endif // __GNUG__
+
 #include "largeint.h"
 
-#ifdef _M_IX86
+#if defined(_M_IX86) && defined(_MSC_VER)
 
 # pragma warning (disable:4035)
 

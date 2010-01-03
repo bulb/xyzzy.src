@@ -1,9 +1,17 @@
 #include "ed.h"
 #include "wstream.h"
-#include "sock.h"
+#if !defined(__GNUG__) ///<TODO
+# include "sock.h"
+#endif // __GNUG__
 #include <math.h>
 #include <float.h>
 #include <stdarg.h>
+
+#if defined(__GNUG__)
+#  ifndef _fpclass
+#    define _fpclass fpclassify
+#  endif // _finite
+#endif // __GNUG__
 
 char upcase_digit_char[] = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
 char downcase_digit_char[] = "0123456789abcdefghijklmnopqrstuvwxyz";
@@ -55,6 +63,7 @@ fmt_float::fmt_float (lisp lnumber)
     {
       switch (_fpclass (number))
         {
+#if defined(_MSC_VER)
         case _FPCLASS_NINF:
           strcpy (buf, "#<-Inf>");
           break;
@@ -62,6 +71,12 @@ fmt_float::fmt_float (lisp lnumber)
         case _FPCLASS_PINF:
           strcpy (buf, "#<+Inf>");
           break;
+#elif defined(__GNUG__)
+	case FP_INFINITE: ///TODO FIXME.
+          strcpy (buf, "#<+Inf>");
+#else
+# error
+#endif // __GNUG__	  
 
         default:
           strcpy (buf, "#<NaN>");
@@ -1348,6 +1363,7 @@ print_package (wStream &stream, const print_control &, lisp object)
 static void
 print_error (wStream &stream, const print_control &, lisp object)
 {
+#if !defined(__GNUG__) ///<TODO
   if (xerror_type (object) == CRTL_ERROR)
     stream.add (strerror (xerror_number (object)));
   else
@@ -1369,11 +1385,13 @@ print_error (wStream &stream, const print_control &, lisp object)
           stream.add (buf);
         }
     }
+#endif // __GNUG__
 }
 
 static void
 print_random_state (wStream &stream, const print_control &, lisp object)
 {
+#if !defined(__GNUG__) ///<TODO xrandom_state_object
   char buf[32];
   stream.add ("#S(random-state data #(");
   stream.add (store_uint (buf + sizeof buf, xrandom_state_object (object).index));
@@ -1383,6 +1401,7 @@ print_random_state (wStream &stream, const print_control &, lisp object)
       stream.add (store_uint (buf + sizeof buf, xrandom_state_object (object).X[i]));
     }
   stream.add ("))");
+#endif // __GNUG__
 }
 
 static void
@@ -1547,25 +1566,31 @@ print_readtable (wStream &stream, const print_control &, lisp object)
 static void
 print_dll_module (wStream &stream, const print_control &, lisp object)
 {
+#if defined(_MSC_VER)
   stream.add ("#<DLL-module: ");
   simple_print_string (stream, xdll_module_name (object));
   stream.add ('>');
+#endif // _MSC_VER
 }
 
 static void
 print_dll_function (wStream &stream, const print_control &, lisp object)
 {
+#if defined(_MSC_VER)
   stream.add ("#<c-function: ");
   simple_print_string (stream, xdll_function_name (object));
   stream.add ('>');
+#endif // _MSC_VER
 }
 
 static void
 print_c_callable (wStream &stream, const print_control &pc, lisp object)
 {
+#if !defined(__GNUG__) ///<TODO
   stream.add ("#<c-callable: ");
   print_sexp (stream, pc, xc_callable_function (object), 0);
   stream.add ('>');
+#endif // __GNUG__
 }
 
 static inline void
@@ -1866,7 +1891,11 @@ class SaveCtlString
   const Char *ctle;
   SaveCtlString (Format &, const Char *, int);
   ~SaveCtlString ();
+#if defined(_MSC_VER)
   friend Format;
+#else
+  friend class Format;
+#endif
 };
 
 class UpAndOut
@@ -1874,7 +1903,11 @@ class UpAndOut
   UpAndOut (int c) : colon (c) {}
 public:
   int colon;
+#if defined(_MSC_VER)
   friend Format;
+#else
+  friend class Format;
+#endif
 };
 
 inline
@@ -2425,9 +2458,17 @@ Format::fixed_format (wStream &stream)
   else
     {
       d = max (w - fixed_fmt_width (f.sign, atsign, f.exp, d), 0);
+#if defined(_MSC_VER)
       d = max (1, min (d, f.be - f.b0 - f.exp - 1));
+#elif defined(__GNUG__)
+      d = max (1, min (int(d), int(f.be - f.b0 - f.exp - 1)));
+#endif
       f.roundf (d);
+#if defined(_MSC_VER)
       d = max (1, min (d, f.be - f.b0 - f.exp - 1));
+#elif defined(__GNUG__)
+      d = max (1, min (int(d), int(f.be - f.b0 - f.exp - 1)));
+#endif
     }
 
   int no_lead_zero = 0;
@@ -3659,6 +3700,7 @@ Fformat (lisp dest, lisp string, lisp args)
 void
 ding (int x)
 {
+#if defined(_MSC_VER)
   if (xsymbol_value (Vbeep_on_never) == Qnil)
     {
       if (xsymbol_value (Vvisible_bell) != Qnil)
@@ -3682,12 +3724,19 @@ ding (int x)
       else
         MessageBeep (x);
     }
+#else
+  ///<TODO
+#endif
 }
 
 lisp
 Fding ()
 {
+#if defined(_MSC_VER)
   ding (MB_OK);
+#else
+  ///<TODO
+#endif
   return Qnil;
 }
 
@@ -3696,6 +3745,7 @@ struct msgbox_styles {int type, icon, def;};
 static void
 msgbox_style (msgbox_styles &mb, lisp styles)
 {
+#if defined(_MSC_VER)
   mb.type = -1;
   mb.icon = 0;
   mb.def = 0;
@@ -3740,6 +3790,7 @@ msgbox_style (msgbox_styles &mb, lisp styles)
           mb.def = 4;
         QUIT;
       }
+#endif // _MSC_VER
 }
 
 static lisp
@@ -3747,6 +3798,7 @@ msgbox_result (int x)
 {
   switch (x)
     {
+#if defined(_MSC_VER)
     case IDABORT:
       return Kabort;
 
@@ -3782,6 +3834,7 @@ msgbox_result (int x)
 
     case XMessageBox::IDBUTTON5:
       return Kbutton5;
+#endif // _MSC_VER
 
     default:
       return Qnil;
@@ -3879,10 +3932,14 @@ Fmessage_box (lisp lmsg, lisp ltitle, lisp styles, lisp args)
         }
     }
 
+#if defined(_MSC_VER)
   return msgbox_result (MsgBoxEx (get_active_window (), msg, title,
                                   mb.type, mb.def, mb.icon, 1,
                                   captions, numberof (captions), 1,
                                   find_keyword_bool (Kno_wrap, args)));
+#else
+  return Qnil;
+#endif
 }
 
 static void
@@ -3909,13 +3966,19 @@ putmsg (wStream &stream, int msgboxp, int style, int beep)
   if (msgboxp)
     {
       w2s ((char *)b, b + 1, l);
+#if defined(_MSC_VER)
       app.status_window.clear ();
       return MsgBox (get_active_window (), (char *)b, TitleBarString, style, beep);
+#else
+      return 0; ///<TODO
+#endif 
     }
   else
     {
+#if !defined(__GNUG__) ///<TODO app.status_window
       app.status_window.puts (b + 1, l);
       app.status_window.putc ('\n');
+#endif // __GNUG__
       if (beep)
         Fding ();
       return 0;
@@ -4008,6 +4071,7 @@ print_condition (lisp cc)
     {
       wStream stream;
       print_condition (stream, cc);
+#if !defined(__GNUG__) ///<TODO MB_XX...
       putmsg (stream,
               (xstrdef_important_p (xstrdata_def (cc))
                && (xsymbol_value (Vsi_report_simple_errors_mildly) == Qnil
@@ -4020,6 +4084,7 @@ print_condition (lisp cc)
                                        xsymbol_value (QCwarning)) != Qnil
                ? xsymbol_value (Vbeep_on_warn) != Qnil
                : xsymbol_value (Vbeep_on_error) != Qnil));
+#endif // __GNUG__
     }
   catch (nonlocal_jump &)
     {
@@ -4202,7 +4267,9 @@ message (lisp a1, lisp a2)
 int
 yes_or_no_p (lisp a1, lisp a2)
 {
+#if !defined(__GNUG__) ///<TODO MB_XX...
   return msgbox (MB_YESNO | MB_ICONQUESTION, a1, a2) == IDYES;
+#endif // __GNUG__
 }
 
 int
@@ -4226,7 +4293,9 @@ yes_or_no_p (message_code a1, lisp a2)
 void
 warn_msgbox (lisp a1, lisp a2)
 {
+#if !defined(__GNUG__) ///<TODO MB_XX...
   domsg (MB_OK | MB_ICONEXCLAMATION, 1, 1, a1, a2);
+#endif // __GNUG__
 }
 
 void
@@ -4256,7 +4325,9 @@ format_message (message_code m, ...)
   char buf[2048];
   vsprintf (buf, fmt, ap);
   va_end (ap);
+#if !defined(__GNUG__) ///TODO
   app.status_window.puts (buf, 1);
+#endif // __GNUG__
 }
 
 int
@@ -4268,8 +4339,12 @@ format_yes_or_no_p (message_code m, ...)
   char buf[2048];
   vsprintf (buf, fmt, ap);
   va_end (ap);
+#if defined(_MSC_VER)
   return MsgBox (get_active_window (), buf, TitleBarString,
                  MB_YESNO | MB_ICONQUESTION, 1) == IDYES;
+#else
+  return 0; ///<TODO
+#endif //_MSC_VER
 }
 
 char *

@@ -3,7 +3,15 @@
 #include <string.h>
 #include <ctype.h>
 #include <stdarg.h>
-#include <io.h>
+#if defined(_MSC_VER)
+#  include <io.h>
+#elif defined(__GNUG__)
+#  include <unistd.h>
+#  ifndef _unlink
+#  define _unlink unlink
+#  endif // _unlink
+#endif // __GNUG__
+
 
 static FILE *fi, *fo;
 #define MAXARGS 2

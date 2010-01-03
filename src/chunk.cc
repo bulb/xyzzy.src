@@ -294,6 +294,7 @@ cast_to_long (lisp object)
   if (pointerp (object))
     switch (object_typeof (object))
       {
+#if !defined(__GNUG__)
       case Tchunk:
         return long (xchunk_data (object));
 
@@ -305,6 +306,7 @@ cast_to_long (lisp object)
 
       case Tc_callable:
         return long (xc_callable_insn (object));
+#endif // __GNUG__
       }
   return coerce_to_long (object);
 }

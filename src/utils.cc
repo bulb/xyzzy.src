@@ -136,7 +136,7 @@ find_last_slash (const char *p)
 }
 
 long
-log2 (u_long x)
+_log2 (u_long x)
 {
   long l;
   for (l = 0; x; x >>= 1, l++)
@@ -371,6 +371,7 @@ convert_backsl_with_sl (char *path, int f, int t)
     }
 }
 
+#if defined(_MSC_VER)
 void
 fill_rect (HDC hdc, const RECT &r, COLORREF c)
 {
@@ -514,6 +515,7 @@ frameDC::frame_rect (const RECT &r, int w) const
   paint (r);
   SelectClipRgn (f_hdc, 0);
 }
+#endif // _MSC_VER
 
 ucs2_t *
 i2w (const Char *p, int l, ucs2_t *b)

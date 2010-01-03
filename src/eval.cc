@@ -25,9 +25,11 @@ public:
 
 check_stack_depth::check_stack_depth ()
 {
+#if defined(_MSC_VER)
   MEMORY_BASIC_INFORMATION mbi;
   VirtualQuery (&mbi, &mbi, sizeof mbi);
   limit = (char *)mbi.AllocationBase + 512 * 1024;
+#endif // _MSC_VER
 }
 
 inline void
@@ -107,7 +109,11 @@ Ffunction (lisp arg, lex_env &lex)
         break;
 
       case Tc_callable:
+#if defined(_MSC_VER)
         return xc_callable_function (fn);
+#else  // __GNUG__
+	; ///@todo
+#endif // __GNUG__
       }
   return FEinvalid_function (fn);
 }
@@ -646,6 +652,7 @@ eval (lisp arg, lex_env &lex)
       return funcall_lambda (xclosure_body (f), arglist, nlex);
     }
 
+#if defined(_MSC_VER)
   if (dll_function_p (type))
     {
       trace.set (stack_trace::eval_args, real_name, Qnil);
@@ -665,6 +672,7 @@ eval (lisp arg, lex_env &lex)
       trace.set (stack_trace::apply, real_name, arglist);
       return funcall_c_callable (f, arglist);
     }
+#endif // _MSC_VER
 
   if (consp (type))
     {
@@ -767,6 +775,7 @@ Ffuncall (lisp fn, lisp args)
       return funcall_lambda (xclosure_body (f), args, lex);
     }
 
+#if defined(_MSC_VER)
   if (dll_function_p (type))
     {
       trace.set (stack_trace::apply, fn, args);
@@ -778,6 +787,7 @@ Ffuncall (lisp fn, lisp args)
       trace.set (stack_trace::apply, fn, args);
       return funcall_c_callable (f, args);
     }
+#endif // _MSC_VER
 
   if (consp (type) && xcar (f) == Qlambda)
     {
@@ -1716,6 +1726,7 @@ Finteractive (lisp, lex_env &)
 static lisp
 process_interactive_string (lisp fmt, lisp args)
 {
+#if !defined(__GNUG__)
   check_string (fmt);
 
   const Char *p = xstring_contents (fmt);
@@ -1980,6 +1991,9 @@ process_interactive_string (lisp fmt, lisp args)
     }
 
   return Fnreverse (iargs);
+#else // minibuffer‚ð‚È‚ñ‚Æ‚©‚·‚é
+  return Qnil;
+#endif // __GNUG__
 }
 
 static lisp

@@ -2,7 +2,9 @@
 #ifndef _signal_h_
 # define _signal_h_
 
+#if defined(_MSC_VER)
 enum message_code;
+#endif // _MSC_VER
 
 void init_condition ();
 

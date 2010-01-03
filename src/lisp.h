@@ -17,6 +17,9 @@ public:
 
 typedef lisp_object *lisp;
 
+#if defined(__GNUG__)
+# include "msgcode.h"
+#endif // __GNUG__
 # include "signal.h"
 # include "data.h"
 # include "utils.h"
@@ -50,7 +53,9 @@ POINTER:
 # define Lchar ((1 << LSHORT_INT_SHIFT) | SHORT_INT_TEST_BITS)
 # define Lmessage ((2 << LSHORT_INT_SHIFT) | SHORT_INT_TEST_BITS)
 
+#if defined(_MSC_VER)
 enum message_code;
+#endif // _MSC_VER
 
 enum lisp_object_type_bits
 {
@@ -153,7 +158,6 @@ typedef lisp (__stdcall *lfunction_proc_3)(lisp, lisp, lisp);
 # endif
 # include "vars-decl.h"
 # include "fns-decl.h"
-
 # include "msgcode.h"
 
 inline u_short
@@ -534,9 +538,15 @@ multiple_value::count ()
 
 class save_multiple_value
 {
+#if !defined(__GNUG__)
   protect_gc pgc;
   multiple_value_data *last;
   multiple_value_data data;
+#else
+  multiple_value_data *last;
+  multiple_value_data data;
+  protect_gc pgc; ///<todo ‡”Ô
+#endif // __GNUG__
 public:
   save_multiple_value (lisp);
   ~save_multiple_value ();

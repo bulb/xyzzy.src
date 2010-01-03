@@ -9,11 +9,8 @@
 # ifndef _ismblend
 #  define _ismbblead(c) (0x80 <= (c) && ((c) < 0xa0 || 0xe0 <= (c)))
 # endif // _ismblend
-
-# ifndef __cdecl
-#  define __cdecl __attribute__((cdecl))
-# endif // __attribute__
 #endif
+
 #define NOT_COMPILE_TIME
 #include "cdecl.h"
 #include "symbol.h"
@@ -553,11 +550,13 @@ static symbols lsp[] =
   DEFUN3 (compile-file-pathname, 1, 0, 0),
   DEFUN3 (delete-file, 1, 0, FFneed_rest),
   DEFUN3 (rename-file, 2, 0, FFneed_rest),
+#if !defined(__GNUG__)
   DEFUN3 (copy-file, 2, 0, FFneed_rest),
   DEFUN3 (create-directory, 1, 0, FFneed_rest),
   DEFUN3 (delete-directory, 1, 0, FFneed_rest),
   DEFUN3 (file-length, 1, 0, 0),
   DEFUN3 (file-write-time, 1, 0, 0),
+#endif //__GNUG__
   DEFUN3 (set-file-write-time, 2, 0, 0),
   DEFUN3 (set-per-device-directory, 1, 0, 0),
   DEFVAR2 (*auto-update-per-device-directory*),
@@ -565,9 +564,11 @@ static symbols lsp[] =
   DEFUN3 (find-load-path, 1, 0, 0),
 
   /* glob.cc */
+#if !defined(__GNUG__)
   DEFUN3 (directory, 1, 0, FFneed_rest),
   DEFUN3 (wild-pathname-p, 1, 0, 0),
   DEFUN3 (pathname-match-p, 2, 0, 0),
+#endif //__GNUG__
   DEFVAR2 (*brackets-is-wildcard-character*),
 
   /* stream.cc */
@@ -678,6 +679,7 @@ static symbols lsp[] =
   DEFVAR2 (*garbage-collection-messages*),
 
   /* environ.cc */
+#if !defined(__GNUG__)
   DEFUN3 (get-decoded-time, 0, 0, 0),
   DEFUN3 (get-universal-time, 0, 0, 0),
   DEFUN3 (decode-universal-time, 1, 1, 0),
@@ -686,6 +688,7 @@ static symbols lsp[] =
   DEFUN3 (software-type, 0, 0, 0),
   DEFUN3 (software-version, 0, 0, 0),
   DEFUN3 (software-version-display-string, 0, 0, 0),
+#endif //__GNUG__
 
   /* structure.cc */
   MAKE_SYMBOL (structure, Qstructure),
@@ -853,15 +856,19 @@ static symbols sys[] =
   SI_DEFUN3 (*startup, 0, 0, 0),
 
   /* toplev.cc */
+#if !defined(__GNUG__)
   SI_DEFUN3 (*minibuffer-message, 1, 1, 0),
   SI_DEFUN3 (*show-window-foreground, 0, 0, 0),
   SI_DEFUN3 (*activate-toplevel, 0, 0, 0),
+#endif //__GNUG__
   SI_DEFVAR2 (*paste-hook*),
 
   /* buffer.cc */
+#if !defined(__GNUG__)
   SI_DEFUN3 (*create-wait-object, 0, 0, 0),
   SI_DEFUN3 (*add-wait-object, 1, 1, 0),
   SI_DEFUN3 (*remove-wait-object, 1, 1, 0),
+#endif //__GNUG__
 
   /* disp.cc */
   SI_DEFVAR2 (*find-motion*),
@@ -915,12 +922,15 @@ static symbols sys[] =
   /* environ.cc */
   SI_DEFUN3 (system-root, 0, 0, 0),
   SI_DEFUN3 (getenv, 1, 0, 0),
+#if !defined(__GNUG__)
   SI_DEFUN3 (delete-registry-tree, 0, 0, 0),
   SI_DEFUN3 (performance-counter, 0, 0, 0),
   SI_DEFUN3 (dump-image-path, 0, 0, 0),
   DEFCONST2Q (*performance-counter-frequency*),
+#endif // __GNUG__
 
   /* chunk.cc */
+#if !defined(__GNUG__)
   SI_DEFUN3 (make-chunk, 2, 2, 0),
   SI_DEFUN3 (make-string-chunk, 1, 0, 0),
   SI_DEFUN3 (chunk-data, 1, 0, 0),
@@ -949,11 +959,14 @@ static symbols sys[] =
   SI_DEFUN3 (pack-float, 3, 0, 0),
   SI_DEFUN3 (pack-double, 3, 0, 0),
   SI_DEFUN3 (pack-string, 3, 1, 0),
+#endif // __GNUG__
 
   /* dll.cc */
+#if defined(_MSC_VER)
   SI_DEFUN3 (load-dll-module, 1, 0, 0),
   SI_DEFUN3 (make-c-function, 4, 0, 0),
   SI_DEFUN3 (make-c-callable, 3, 0, 0),
+#endif // _MSC_VER
 
   MAKE_SYMBOL (dll-module, Qsi_dll_module),
   MAKE_SYMBOL (c-function, Qsi_c_function),
@@ -961,6 +974,7 @@ static symbols sys[] =
   MAKE_SYMBOL (chunk, Qsi_chunk),
 
   /* encdec.cc */
+#if !defined(__GNUG__)
   SI_DEFUN3 (base64-decode, 1, 1, 0),
   SI_DEFUN3 (base64-encode, 1, 2, 0),
   SI_DEFUN3 (uuencode, 1, 1, 0),
@@ -974,6 +988,7 @@ static symbols sys[] =
   SI_DEFUN3 (sha-1, 1, 0, 0),
   SI_DEFUN3 (hmac-md5, 2, 0, 0),
   SI_DEFUN3 (hmac-sha-1, 2, 0, 0),
+#endif // __GNUG__
 
   /* lread.cc */
   SI_DEFUN3 (*load-library, 1, 0, FFneed_rest),
@@ -1007,6 +1022,7 @@ static symbols sys[] =
   SI_DEFUN2X ("#|-reader", number_bar_reader, 3, 0, 0),
   SI_DEFVAR2 (*character-name-hash-table*),
 
+#if !defined(__GNUG__)
   /* Window.cc */
   SI_DEFUN3 (*instance-number, 0, 0, 0),
 
@@ -1016,11 +1032,14 @@ static symbols sys[] =
   /* doc.cc */
   SI_DEFUN3 (*snarf-documentation, 2, 0, 0),
   SI_DEFUN3 (get-documentation-string, 4, 0, 0),
+#endif //__GNUG__
 
   /* listen.cc */
   SI_DEFVAR2 (*accept-kill-xyzzy*),
 
+#if !defined(__GNUG__)
   SI_DEFUN3 (inflate-stream, 1, 1, 0),
+#endif //__GNUG__
   //SI_DEFUN3 (deflate-stream, 1, 2, 0),
 };
 
@@ -1589,9 +1608,13 @@ static symbols ed[] =
   DEFUN3 (local-variable-p, 1, 1, 0),
   DEFUN3 (command-execute, 1, 1, 0),
   DEFUN3 (interactive-p, 0, 0, 0),
+#if !defined(__GNUG__)
   DEFSF3 (save-excursion),
+#endif //__GNUG__
   DEFSF3 (save-restriction),
+#if !defined(__GNUG__)
   DEFSF3 (save-window-excursion),
+#endif //__GNUG__
   DEFUN3 (commandp, 1, 0, 0),
   DEFUN3 (buffer-local-value, 2, 0, 0),
   DEFVAR2 (*protected-local-variables*),
@@ -1603,6 +1626,7 @@ static symbols ed[] =
   DEFVAR2 (*applyhook*),
 
   /* environ.cc */
+#if !defined(__GNUG__)
   DEFUN3 (write-registry, 3, 0, 0),
   DEFUN3 (write-registry-literally, 3, 0, 0),
   DEFUN3 (read-registry, 2, 1, 0),
@@ -1616,6 +1640,7 @@ static symbols ed[] =
   DEFUN3 (os-csd-version, 0, 0, 0),
   DEFUN3 (get-windows-directory, 0, 0, 0),
   DEFUN3 (get-system-directory, 0, 0, 0),
+#endif //__GNUG__
   MAKE_SYMBOL2 (win32s),
   MAKE_SYMBOL2 (windows-95),
   MAKE_SYMBOL2 (windows-98),
@@ -1623,7 +1648,9 @@ static symbols ed[] =
   MAKE_SYMBOL2 (windows-nt),
   MAKE_SYMBOL2 (windows-2000),
   MAKE_SYMBOL2 (windows-xp),
+#if !defined(__GNUG__)
   DEFUN3 (user-config-path, 0, 0, 0),
+#endif //__GNUG__
   DEFVAR2 (*convert-registry-to-file-p*),
 
   /* Buffer.cc */
@@ -1684,12 +1711,15 @@ static symbols ed[] =
   DEFCMD3 (kill-xyzzy, 0, 0, 0, ""),
   DEFUN3 (lock-file, 0, 1, 0),
   DEFUN3 (unlock-file, 0, 1, 0),
+#if !defined(__GNUG__)
   DEFUN3 (file-locked-p, 0, 1, 0),
+#endif //__GNUG__
   MAKE_SYMBOL2 (exclusive-lock-file),
   DEFUN3 (set-buffer-colors, 1, 1, 0),
   DEFVAR2 (*change-buffer-colors-hook*),
   DEFVAR2 (*sort-buffer-list-by-created-order*),
   DEFVAR2 (*title-bar-text-order*),
+#if !defined(__GNUG__)
   DEFUN3 (set-default-fold-width, 1, 0, 0),
   DEFUN3 (set-buffer-fold-width, 1, 1, 0),
   DEFUN3 (default-fold-width, 0, 0, 0),
@@ -1699,7 +1729,9 @@ static symbols ed[] =
   DEFUN3 (buffer-line-number-mode, 0, 1, 0),
   DEFUN3 (set-default-line-number-mode, 1, 0, 0),
   DEFUN3 (set-buffer-line-number-mode, 1, 1, 0),
+#endif //__GNUG__
   DEFVAR2 (*kill-xyzzy-hook*),
+#if !defined(__GNUG__)
   DEFUN3 (last-modified-point, 0, 1, 0),
   DEFUN3 (update-mode-line, 0, 1, 0),
   DEFUN3 (set-kinsoku-chars, 2, 1, 0),
@@ -1711,22 +1743,29 @@ static symbols ed[] =
   DEFUN3 (set-kinsoku-extend-limit, 1, 1, 0),
   DEFUN3 (kinsoku-shorten-limit, 0, 1, 0),
   DEFUN3 (set-kinsoku-shorten-limit, 1, 1, 0),
+#endif //__GNUG__
   DEFVAR2 (*query-kill-xyzzy-hook*),
+#if !defined(__GNUG__)
   DEFUN3 (set-hjump-columns, 1, 1, 0),
   DEFUN3 (hjump-columns, 0, 1, 0),
   DEFUN3 (refresh-title-bar, 0, 0, 0),
   DEFUN3 (create-buffer-bar, 0, 0, 0),
+#endif //__GNUG__
   MAKE_SYMBOL2 (buffer-bar),
   DEFVAR2 (*buffer-bar-selected-buffer-to-first*),
   DEFVAR2 (*buffer-bar-hook*),
   DEFVAR2 (*initial-buffer-mode*),
   MAKE_SYMBOL2 (*buffer-bar-context-menu-handler*),
   MAKE_SYMBOL2 (buffer-in-any-pseudo-frame-p),
+#if !defined(__GNUG__)
   DEFUN3 (buffer-ime-mode, 0, 1, 0),
   DEFUN3 (set-buffer-ime-mode, 1, 1, 0),
+#endif //__GNUG__
   MAKE_SYMBOL2 (post-buffer-modified-hook),
+#if !defined(__GNUG__)
   DEFUN3 (enable-post-buffer-modified-hook, 1, 1, 0),
   DEFUN3 (post-buffer-modified-hook-enabled-p, 0, 1, 0),
+#endif //__GNUG__
 
   /* insdel.cc */
   DEFUN3 (insert-file-contents, 1, 3, 0),
@@ -1734,11 +1773,14 @@ static symbols ed[] =
   DEFCMD3 (delete-region, 2, 0, 0, "*r"),
   DEFUN3 (buffer-substring, 2, 0, 0),
   MAKE_SYMBOL2 (overwrite-mode),
+#if !defined(__GNUG__)
   DEFUN3 (copy-to-clipboard, 1, 0, 0),
   DEFUN3 (get-clipboard-data, 0, 0, 0),
   DEFUN3 (clipboard-empty-p, 0, 0, 0),
+#endif //__GNUG__
   DEFVAR2 (*clipboard-newer-than-kill-ring-p*),
   DEFVAR2 (*kill-ring-newer-than-clipboard-p*),
+#if !defined(__GNUG__)
   DEFUN3 (set-text-attribute, 3, 0, FFneed_rest),
   DEFUN3 (clear-all-text-attributes, 0, 0, 0),
   DEFUN3 (delete-text-attributes, 1, 0, FFneed_rest),
@@ -1753,6 +1795,7 @@ static symbols ed[] =
   DEFUN3 (list-text-attributes, 0, 2, 0),
   DEFUN3 (find-text-attribute-point, 1, 0, 0),
   DEFUN3 (delete-text-attribute-point, 1, 0, 0),
+#endif //__GNUG__
   MAKE_SYMBOL2 (*clipboard-char-encoding*),
 #if 0
   MAKE_SYMBOL2 (*pre-insert-hook*),
@@ -1892,8 +1935,10 @@ static symbols ed[] =
 
   /* undo.cc */
   MAKE_SYMBOL2F (kept-undo-information, SFmake_buffer_local),
+#if !defined(__GNUG__)
   DEFUN3 (undo-boundary, 0, 0, 0),
   DEFUN3 (clear-undo-boundary, 0, 1, 0),
+#endif //__GNUG__
   DEFCMD3 (undo, 0, 0, 0, ""),
   DEFCMD3 (redo, 0, 0, 0, ""),
   DEFUN3 (buffer-can-undo-p, 1, 0, 0),
@@ -1959,6 +2004,7 @@ static symbols ed[] =
   DEFUN3 (compiled-regexp-case-fold-p, 1, 0, 0),
 
   /* Window.cc */
+#if !defined(__GNUG__)
   DEFCMD3 (split-window, 0, 2, 0, "p"),
   DEFCMD3 (delete-other-windows, 0, 0, 0, ""),
   DEFCMD3 (delete-window, 0, 0, 0, ""),
@@ -1968,7 +2014,9 @@ static symbols ed[] =
   DEFUN3 (window-buffer, 1, 0, 0),
   DEFUN3 (next-window, 1, 1, 0),
   DEFUN3 (previous-window, 1, 1, 0),
+#endif //__GNUG__
   DEFUN3 (get-buffer-window, 1, 1, 0),
+#if !defined(__GNUG__)
   DEFUN3 (set-window, 1, 0, 0),
   DEFCMD3 (enlarge-window, 0, 2, 0, "p"),
   MAKE_SYMBOL2 (insert-default-directory),
@@ -1999,6 +2047,7 @@ static symbols ed[] =
   DEFCMD3 (begin-auto-scroll, 0, 0, 0, ""),
   MAKE_SYMBOL2 (*page-scroll-half-window*),
   MAKE_SYMBOL2 (*next-screen-context-lines*),
+#endif //__GNUG__
 
   /* syntax.cc */
   DEFUN3 (make-syntax-table, 0, 0, 0),
@@ -2105,8 +2154,10 @@ static symbols ed[] =
   DEFUN3 (refresh-highlight-info, 0, 1, 0),
 
   /* minibuf.cc */
+#if !defined(__GNUG__)
   DEFCMD3 (exit-recursive-edit, 0, 1, 0, ""),
   DEFCMD3 (quit-recursive-edit, 0, 1, 0, ""),
+#endif //__GNUG__
   DEFVAR2 (*enable-recursive-minibuffers*),
   DEFVAR2 (*enter-minibuffer-hook*),
   DEFVAR2 (*exit-minibuffer-hook*),
@@ -2114,6 +2165,7 @@ static symbols ed[] =
   MAKE_SYMBOL2 (minibuffer-local-completion-map),
   MAKE_SYMBOL2 (minibuffer-local-map),
   MAKE_SYMBOL2 (minibuffer-local-command-line-map),
+#if !defined(__GNUG__)
   DEFUN3 (*do-completion, 2, 2, 0),
   DEFUN3 (minibuffer-completion-type, 0, 1, 0),
   DEFUN3 (minibuffer-completion-list, 0, 1, 0),
@@ -2138,14 +2190,17 @@ static symbols ed[] =
   DEFUN3 (read-char-encoding, 1, 0, FFneed_rest),
   DEFUN3 (read-exact-char-encoding, 1, 0, FFneed_rest),
   DEFUN3 (completing-read, 2, 0, FFneed_rest),
+#endif //__GNUG__
   MAKE_SYMBOL2 (universal-argument),
   MAKE_SYMBOL2 (*buffer-package*),
   DEFVAR2 (*minibuffer-save-ime-status*),
 
   /* fileio.cc */
+#if !defined(__GNUG__)
   DEFUN3 (clear-visited-file-modtime, 0, 1, 0),
   DEFUN3 (update-visited-file-modtime, 0, 1, 0),
   DEFUN3 (verify-visited-file-modtime, 0, 1, 0),
+#endif //__GNUG__
   MAKE_SYMBOL2 (version-control),
   MAKE_SYMBOL2 (kept-old-versions),
   MAKE_SYMBOL2 (kept-new-versions),
@@ -2154,10 +2209,12 @@ static symbols ed[] =
   MAKE_SYMBOL2 (pack-backup-file-name),
   MAKE_SYMBOL2 (backup-by-copying),
   MAKE_SYMBOL2Q (never),
+#if !defined(__GNUG__)
   DEFCMD3 (save-buffer, 0, 2, 0, ""),
   DEFUN3 (delete-auto-save-file, 1, 0, 0),
   DEFUN3 (do-auto-save, 0, 1, 0),
   DEFCMD3 (write-region, 3, 3, 0, "r\nFƒtƒ@ƒCƒ‹–¼: \np"),
+#endif //__GNUG__
   MAKE_SYMBOL2 (to-ascii-fileio),
   MAKE_SYMBOL2 (to-kanji-fileio),
   MAKE_SYMBOL2 (to-kana-fileio),
@@ -2175,12 +2232,14 @@ static symbols ed[] =
   /* toplev.cc */
   DEFVAR2 (*drag-and-drop-hook*),
   DEFVAR2 (*drag-and-drop-auto-activate*),
+#if !defined(__GNUG__)
   DEFUN3 (cancel-mouse-event, 0, 0, 0),
   DEFVAR2 (*eat-mouse-activate*),
   DEFUN3 (begin-wait-cursor, 0, 0, 0),
   DEFUN3 (end-wait-cursor, 0, 0, 0),
   DEFUN3 (main-loop, 0, 0, 0),
   DEFUN3 (set-cursor, 1, 0, 0),
+#endif //__GNUG__
   DEFVAR2 (*cursor-shape*),
   DEFVAR2 (*ime-mode-hook*),
   DEFVAR2 (*this-command*),
@@ -2188,9 +2247,11 @@ static symbols ed[] =
   MAKE_SYMBOL2 (*pre-command-hook*),
   MAKE_SYMBOL2 (*post-command-hook*),
   DEFVAR2 (*blink-caret*),
+#if !defined(__GNUG__)
   DEFUN3 (call-menu, 1, 0, 0),
   DEFUN3 (set-quit-char, 1, 0, 0),
   DEFUN3 (quit-char, 0, 0, 0),
+#endif //__GNUG__
   DEFVAR2 (*support-mouse-wheel*),
 
   /* mouse.cc */
@@ -2201,7 +2262,9 @@ static symbols ed[] =
   DEFVAR2 (*hide-mouse-cursor*),
 
   /* disp.cc */
+#if !defined(__GNUG__)
   DEFUN3 (refresh-screen, 0, 1, 0),
+#endif //__GNUG__
   DEFVAR2 (*inverse-mode-line*),
   MAKE_SYMBOL2F (hide-restricted-region, SFmake_buffer_local),
   DEFVAR2 (*minor-mode-alist*),
@@ -2260,6 +2323,7 @@ static symbols ed[] =
   DEFUN3 (get-file-info, 1, 0, 0),
 
   /* process.cc */
+#if !defined(__GNUG__)
   DEFUN3 (call-process, 1, 0, FFneed_rest),
   DEFUN3 (make-process, 1, 0, FFneed_rest),
   DEFUN3 (open-network-stream, 3, 0, FFneed_rest),
@@ -2283,11 +2347,13 @@ static symbols ed[] =
   DEFUN3 (process-sentinel, 1, 0, 0),
   DEFUN3 (process-marker, 1, 0, 0),
   DEFUN3 (shell-execute, 1, 2, 0),
+#endif //__GNUG__
   DEFVAR2 (*default-process-encoding*),
   DEFVAR2 (*use-shell-execute-ex*),
   DEFVAR2 (*shell-execute-disregards-shift-key*),
 
   /* menu.cc */
+#if !defined(__GNUG__)
   DEFUN3 (create-menu, 0, 1, 0),
   DEFUN3 (create-popup-menu, 0, 1, 0),
   DEFUN3 (add-popup-menu, 3, 0, 0),
@@ -2304,8 +2370,10 @@ static symbols ed[] =
   DEFUN3 (use-local-menu, 1, 0, 0),
   DEFUN3 (copy-menu-items, 2, 0, 0),
   DEFUN3 (current-menu, 0, 1, 0),
+#endif //__GNUG__ 
 
   /* kbd.cc */
+#if !defined(__GNUG__)
   DEFUN3 (sit-for, 1, 1, 0),
   DEFUN3 (sleep-for, 1, 0, 0),
   DEFUN3 (do-events, 0, 0, 0),
@@ -2322,6 +2390,7 @@ static symbols ed[] =
   DEFUN3 (set-ime-read-string, 0, 1, 0),
   DEFUN3 (*ime-register-word-dialog, 0, 2, 0),
   DEFUN3 (enable-global-ime, 1, 0, 0),
+#endif //__GNUG__
   DEFVAR2 (*ime-control*),
   DEFVAR2 (*extended-key-translate-table*),
   DEFVAR2 (*kbd-translate-table*),
@@ -2332,12 +2401,15 @@ static symbols ed[] =
   DEFVAR2 (*keyboard-layout-list*),
   DEFVAR (*ime-does-not-process-C-\\*, Vime_does_not_process_control_backslach),
   DEFVAR2 (*no-input-language-change-notification*),
+#if !defined(__GNUG__)
   DEFUN3 (list-kbd-layout, 0, 0, 0),
   DEFUN3 (select-kbd-layout, 1, 0, 0),
   DEFUN3 (current-kbd-layout, 0, 0, 0),
   DEFVAR2 (*unicode-ime*),
+#endif //__GNUG__
 
   /* kanji.cc */
+#if !defined(__GNUG__)
   DEFCMD3 (map-to-half-width-region, 2, 0, FFneed_rest, "*r"),
   DEFCMD3 (map-to-full-width-region, 2, 0, FFneed_rest, "*r"),
   DEFUN3 (map-to-half-width-string, 1, 0, FFneed_rest),
@@ -2346,8 +2418,10 @@ static symbols ed[] =
   DEFUN3 (convert-encoding-from-internal, 2, 1, 0),
   DEFUN3 (detect-char-encoding, 1, 0, 0),
   DEFVAR2 (*accept-mule-ucs-funny-utf8*),
+#endif //__GNUG__
 
   /* ldialog.cc */
+#if !defined(__GNUG__)
   DEFUN3 (dialog-box, 3, 0, 0),
   MAKE_SYMBOL2Q (dialog),
 #undef IDOK
@@ -2355,6 +2429,7 @@ static symbols ed[] =
 #undef IDCANCEL
   MAKE_SYMBOL (IDCANCEL, Qidcancel),
   DEFUN3 (property-sheet, 1, 2, 0),
+#endif //__GNUG__
   MAKE_SYMBOL2Q (font-page),
   MAKE_SYMBOL2Q (color-page),
   DEFVAR2 (*color-page-enable-dir-p*),
@@ -2367,12 +2442,17 @@ static symbols ed[] =
   DEFVAR2 (*std-control-next-char*),
 
   /* dialogs.cc */
+#if !defined(__GNUG__)
   DEFUN3 (buffer-selector, 0, 0, 0),
+#endif //__GNUG__
   DEFVAR2 (*minibuffer-file-name-history*),
+#if !defined(__GNUG__)
   DEFUN3 (file-name-dialog, 0, 0, FFneed_rest),
   DEFUN3 (directory-name-dialog, 0, 0, FFneed_rest),
   DEFUN3 (drive-dialog, 0, 1, 0),
+#endif //__GNUG__
 
+#if !defined(__GNUG__)
   /* winhelp.cc */
   DEFUN3 (*run-winhelp, 1, 1, 0),
   DEFUN3 (*kill-winhelp, 1, 0, 0),
@@ -2389,9 +2469,11 @@ static symbols ed[] =
   DEFUN3 (dde-execute, 2, 0, 0),
   DEFUN3 (dde-poke, 3, 0, 0),
   DEFUN3 (dde-request, 2, 1, 0),
+#endif //__GNUG__
   DEFVAR2 (*dde-timeout*),
 
   /* filer.cc */
+#if !defined(__GNUG__)
   DEFUN3 (filer, 0, 5, 0),
   DEFUN3 (filer-forward-line, 0, 2, 0),
   DEFUN3 (filer-forward-page, 0, 2, 0),
@@ -2430,6 +2512,7 @@ static symbols ed[] =
   DEFUN3 (filer-left-window-p, 0, 0, 0),
   DEFUN3 (filer-calc-directory-size, 0, 1, 0),
   DEFUN3 (filer-calc-directory-byte-size, 0, 1, 0),
+#endif //__GNUG__
   MAKE_SYMBOL2 (filer-keymap),
   DEFVAR2 (*filer-last-command-char*),
   DEFVAR2 (*filer-dual-window*),
@@ -2444,20 +2527,29 @@ static symbols ed[] =
   MAKE_SYMBOL2 (*filer-drag-and-drop-helper),
   MAKE_SYMBOL2 (*filer-chdir-hook*),
   DEFVAR2 (*filer-chdir-primary-p*),
+#if !defined(__GNUG__)
   DEFUN3 (filer-viewer, 0, 0, 0),
   DEFUN3 (filer-modal-p, 0, 0, 0),
   DEFUN3 (filer-modify-column-width, 2, 1, 0),
+#endif //__GNUG__
   DEFVAR2 (*filer-format-comma*),
+#if !defined(__GNUG__)
   DEFUN3 (filer-context-menu, 0, 0, 0),
+#endif //__GNUG__
   DEFVAR2 (*modal-filer-save-position*),
   DEFVAR2 (*modal-filer-save-size*),
   DEFVAR2 (*filer-echo-filename*),
   DEFVAR2 (*filer-eat-esc*),
+#if !defined(__GNUG__)
   DEFUN3 (filer-swap-windows, 0, 0, 0),
+#endif //__GNUG__
   DEFVAR2 (*filer-click-toggle-marks-always*),
+#if !defined(__GNUG__)
   DEFUN3 (filer-read-char, 0, 0, 0),
+#endif //__GNUG__
   DEFVAR2 (*filer-mark-file-size-unit*),
 
+#if !defined(__GNUG__)
   /* edict.cc */
   DEFUN3 (lookup-dictionary, 4, 0, 0),
 
@@ -2484,11 +2576,13 @@ static symbols ed[] =
   /* DnD.cc */
   DEFUN3 (drag-region, 2, 0, 0),
   DEFVAR (*enable-D&D-edit*, Venable_DnD_edit),
+#endif //__GNUG__
 
   /* hash.cc */
   DEFUN3 (gethash-region, 3, 1, 0),
 
   /* popup.cc */
+#if !defined(__GNUG__)
   DEFUN3 (continue-popup, 0, 0, 0),
   DEFUN3 (popup-string, 2, 1, 0),
   DEFUN3 (popup-list, 2, 1, 0),
@@ -2509,6 +2603,7 @@ static symbols ed[] =
   DEFUN3 (read-as-string, 1, 2, 0),
   DEFUN3 (read-line-into, 1, 3, 0),
   DEFUN3 (read-into, 1, 4, 0),
+#endif //__GNUG__
 
   /* ces.cc */
   DEFUN3 (make-auto-detect-encoding, 2, 0, 0),
@@ -2538,19 +2633,24 @@ static symbols ed[] =
   MAKE_SYMBOL2 (*encoding-default-iso-2022*),
   MAKE_SYMBOL2 (*default-utf16-byte-order*),
   DEFVAR2 (*char-encoding-list*),
+#if !defined(__GNUG__)
   DEFUN3 (parse-char-encoding-region, 3, 0, 0),
   DEFUN3 (parse-char-encoding-string, 2, 0, FFneed_rest),
+#endif//__GNUG__
   DEFVAR2 (*unicode-to-half-width*),
   DEFVAR2 (*vender-depend-code-mapping*),
 
   /* listen.cc */
+#if !defined(__GNUG__)
   DEFUN3 (start-xyzzy-server, 0, 0, 0),
   DEFUN3 (stop-xyzzy-server, 0, 0, 0),
+#endif //__GNUG__
 
   /* statarea.cc */
   MAKE_SYMBOL2 (*status-bar-format*),
 
   /* usertool.cc */
+#if !defined(__GNUG__)
   DEFUN3 (create-tool-bar, 3, 0, 0),
   DEFUN3 (show-tool-bar, 1, 4, 0),
   DEFUN3 (hide-tool-bar, 1, 0, 0),
@@ -2560,9 +2660,11 @@ static symbols ed[] =
   DEFUN3 (list-tool-bars, 0, 0, 0),
   DEFCMD3 (focus-tool-bar, 0, 0, 0, ""),
   DEFUN3 (refresh-tool-bars, 0, 0, 0),
+#endif //__GNUG__
   DEFVAR2 (*tab-bar-horizontal-text*),
 
   /* usertab.cc */
+#if !defined(__GNUG__)
   DEFUN3 (create-tab-bar, 2, 0, 0),
   DEFUN3 (tab-bar-add-item, 3, 2, FFneed_rest),
   DEFUN3 (tab-bar-delete-item, 2, 0, 0),
@@ -2571,11 +2673,14 @@ static symbols ed[] =
   DEFUN3 (tab-bar-find-item, 2, 0, 0),
   DEFUN3 (tab-bar-list-items, 1, 0, 0),
   DEFUN3 (tab-bar-modify-item, 2, 3, 0),
+#endif //__GNUG__
   DEFVAR2 (*tab-bar-never-focus*),
 
   /* utimer.cc */
+#if !defined(__GNUG__)
   DEFUN3 (start-timer, 2, 1, 0),
   DEFUN3 (stop-timer, 1, 0, 0),
+#endif //__GNUG__
 
   DEFVAR2 (*last-command-char*),
   DEFVAR2 (*enable-meta-key*),
@@ -2822,9 +2927,6 @@ print_string ()
   printf ("#define EXTERN /* empty */\n");
   printf ("#include \"ed.h\"\n");
   printf ("#include \"symtable.h\"\n\n");
-#if defined(__GNUG__)
-  printf ("#define __stdcall __attribute__((stdcall))\n\n");
-#endif // __GNUG__
   printf ("static const char SS[] = \n\"");
   do_all (print_string);
   printf ("\";\n\n");

@@ -249,7 +249,11 @@ hqxtab ()
   printf ("};\n\n");
 }
 
+#if defined(_MSC_VER)
 void
+#else
+int
+#endif
 main ()
 {
   ctype ();

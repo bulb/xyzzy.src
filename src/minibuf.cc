@@ -579,6 +579,7 @@ completion::complete_filename (const char *path, lisp show_dots, lisp ignores)
 {
   int ignored = 0;
 
+#if !defined(__GNUG__)
   WIN32_FIND_DATA *fd = (WIN32_FIND_DATA *)alloca (sizeof *fd + 2);
   HANDLE h = WINFS::FindFirstFile (path, fd);
   if (h == INVALID_HANDLE_VALUE)
@@ -623,6 +624,7 @@ completion::complete_filename (const char *path, lisp show_dots, lisp ignores)
       ;
     }
   while (WINFS::FindNextFile (h, fd));
+#endif // __GNUG__
   return ignored;
 }
 

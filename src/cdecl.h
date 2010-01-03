@@ -29,7 +29,7 @@
 
 #if defined(__MINGW32__) || defined(__MSYS__)
 # define alloca __builtin_alloca
-#elif defined(_WIN32)
+#elif defined(_MSC_VER)
 # define alloca _alloca
 #else
 # include <alloca.h>
@@ -38,17 +38,51 @@
 # define BITS_PER_INT (sizeof (int) * CHAR_BIT)
 # define BITS_PER_LONG (sizeof (long) * CHAR_BIT)
 
-#ifndef PATH_MAX
-# define PATH_MAX 1024
-#endif // PATH_MAX
+#if defined(_MSC_VER)
+#  define PATH_MAX 1024
+#elif defined(__GNUG__)
+#  ifndef PATH_MAX
+#  define PATH_MAX 1024
+#  endif // PATH_MAX
+#endif // __GNUG__
 # define BUFFER_NAME_MAX PATH_MAX
+
+#if defined(__GNUG__)
+#  ifndef __stdcall
+#  define __stdcall /*__attribute__((stdcall))*/
+#  endif // __stdcall
+#  ifndef __cdecl
+#  define __cdecl __attribute__((cdecl))
+#  endif // __cdecl
+#  ifndef _finite
+#  define _finite isfinite
+#  endif // _finite
+#  ifndef _ecvt
+#  define _ecvt ecvt
+#  endif // _ecvt
+#  ifndef _isnan
+#  define _isnan isnan
+#  endif // _isnan
+#  ifndef FAR
+#  define FAR /* empty */
+#  endif // FAR
+#  ifndef UINT
+#  define UINT u_int32_t
+#  endif // UINT
+#  ifndef PASCAL
+#  define PASCAL /* empty */
+#  endif // PASCAL
+#  ifndef DWORD
+#  define DWORD u_int
+#  endif // DWORD
+#endif // __GNUG__
 
 typedef unsigned char u_char;
 typedef unsigned short u_short;
 typedef unsigned int u_int;
 typedef unsigned long u_long;
 
-#if defined(_WIN32)
+#if defined(_MSC_VER)
 typedef char int8_t;
 typedef short int16_t;
 typedef long int32_t;
@@ -122,13 +156,13 @@ bcmp (const void *p1, const void *p2, size_t size)
   return memcmp (p1, p2, size);
 }
 
-#if defined(_WIN32)
+#if defined(_MSC_VER)
 inline void *
 bzero (void *dst, size_t size)
 {
   return memset (dst, 0, size);
 }
-#endif // _WIN32
+#endif // _MSC_VER
 
 inline void
 bcopy (const Char *src, Char *dst, size_t size)

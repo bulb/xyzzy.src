@@ -11,7 +11,7 @@ char *xstrdup (const char *);
 void *xmemdup (const void *, size_t);
 char *stpcpy (char *, const char *);
 char *stpncpy (char *, const char *, int);
-long log2 (u_long);
+long _log2 (u_long);
 
 # define NF_BAD 0
 # define NF_INTEGER 1
@@ -74,6 +74,7 @@ dir_separator_p (int c)
   return c == '/' || c == '\\';
 }
 
+#if !defined(__GNUG__) ///TODO
 void paint_button_off (HDC, const RECT &);
 void paint_button_on (HDC, const RECT &);
 void fill_rect (HDC, int, int, int, int, COLORREF);
@@ -111,5 +112,6 @@ public:
     {PatBlt (f_hdc, r.left, r.top,
              r.right - r.left, r.bottom - r.top, PATINVERT);}
 };
+#endif // __GNUG__
 
 #endif

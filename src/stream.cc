@@ -1,10 +1,17 @@
 #include "ed.h"
 #include "sequence.h"
 #include "wstream.h"
-#include "sockinet.h"
-#include <io.h>
+#if !defined(__GNUG__)
+# include "sockinet.h"
+# include <io.h>
+#endif // __GNUG__
 #include <fcntl.h>
 #include <math.h>
+
+#if defined(__GNUG__)
+# include <stdio.h>
+# include <unistd.h>
+#endif // __GNUG__
 
 static void
 close_file_stream (lisp stream, int abort)
@@ -12,6 +19,7 @@ close_file_stream (lisp stream, int abort)
   if (!xfile_stream_alt_pathname (stream))
     return;
   xstream_open_p (stream) = 0;
+#if !defined(__GNUG__) ///TODO
   if (abort)
     WINFS::DeleteFile (xfile_stream_alt_pathname (stream));
   else
@@ -22,6 +30,7 @@ close_file_stream (lisp stream, int abort)
       if (!WINFS::MoveFile (xfile_stream_alt_pathname (stream), path))
         file_error (GetLastError (), xfile_stream_pathname (stream));
     }
+#endif // __GNUG__
   xfree (xfile_stream_alt_pathname (stream));
   xfile_stream_alt_pathname (stream) = 0;
 }
@@ -284,12 +293,19 @@ create_file_stream (lisp filename, lisp direction, lisp if_exists,
 
   if (direction == Kinput || direction == Kprobe)
     {
+#if defined(_MSC_VER)
       access = GENERIC_READ;
       create = dont_create ? OPEN_EXISTING : OPEN_ALWAYS;
       if_exists = Qnil;
+#else // __GNUG__
+      access = O_RDONLY;
+      create = dont_create ? O_EXCL : O_CREAT;
+      if_exists = Qnil;
+#endif // __GNUG__
     }
   else
     {
+#if defined(_MSC_VER)
       access = direction == Kio ? (GENERIC_READ | GENERIC_WRITE) : GENERIC_WRITE;
       if (if_exists == Kerror || if_exists == Qnil)
         {
@@ -324,9 +340,46 @@ create_file_stream (lisp filename, lisp direction, lisp if_exists,
         }
       else
         FEprogram_error (Einvalid_if_exists_option, if_exists);
+#else // __GNUG__
+      access = direction == Kio ? O_RDWR : O_WRONLY;
+      if (if_exists == Kerror || if_exists == Qnil)
+	{
+          if (dont_create)
+            {
+              if (if_exists == Kerror)
+                file_error (Ecannot_create_file, filename);
+              return Qnil;
+            }
+	  create = O_CREAT | O_TRUNC | O_EXCL;
+	}
+      else if (if_exists == Knew_version)
+	{
+	  need_alt = 1;
+	  create = O_CREAT;
+	}
+      else if (if_exists == Koverwrite)
+	{
+	  if (direction == Kio)
+	    create = dont_create ? O_EXCL : O_CREAT;
+	  else
+	    create = dont_create ? (O_TRUNC | O_EXCL) : O_CREAT;
+	}
+      else if (if_exists == Kappend)
+	create = dont_create ? O_EXCL : O_CREAT;
+      else if (if_exists == Krename
+	       || if_exists == Krename_and_delete
+	       || if_exists == Ksupersede)
+	{
+	  need_alt = 1;
+	  create = O_CREAT;
+	}
+      else
+	FEprogram_error (Einvalid_if_exists_option, if_exists);
+#endif // __GNUG__
     }
 
   int share;
+#if defined(_MSC_VER)
   if (lshare == Kread)
     share = FILE_SHARE_READ;
   else if (lshare == Kwrite)
@@ -339,7 +392,22 @@ create_file_stream (lisp filename, lisp direction, lisp if_exists,
     share = access == GENERIC_READ ? FILE_SHARE_READ : 0;
   else
     FEprogram_error (Einvalid_share_option, lshare);
+#else // __GNUG__
+  if (lshare == Kread)
+    share = O_RDONLY;
+  ///
+  ///@todo
+  ///
+  else if (lshare == Qnil)
+    share = 0;
+  else if (!lshare)
+    share = access == O_RDONLY ? O_RDONLY : 0; ///<@todo
+  else
+    FEprogram_error (Einvalid_share_option, lshare);
+#endif // __GNUG__
 
+
+#if !defined(__GNUG__) ///@todo
   if (need_alt && (if_exists == Kerror || dont_create))
     {
       HANDLE h = WINFS::CreateFile (path, 0, 0, 0, OPEN_EXISTING, 0, 0);
@@ -359,15 +427,25 @@ create_file_stream (lisp filename, lisp direction, lisp if_exists,
             }
         }
     }
+#endif // __GNUG__
 
+#if defined(_MSC_VER)
   lisp stream = make_file_stream (access == GENERIC_READ
                                   ? st_file_input
                                   : (access == GENERIC_WRITE
                                      ? st_file_output
                                      : st_file_io));
+#else // __GNUG__
+  lisp stream = make_file_stream (access == O_RDONLY
+				  ? st_file_input
+				  : (access == O_WRONLY
+				     ? st_file_output
+				     : st_file_io));
+#endif //__GNUG__
   xfile_stream_pathname (stream) = make_string (path);
   xfile_stream_encoding (stream) = encoding;
 
+#if !defined(__GNUG__) ///@todo
   if (need_alt)
     {
       char *sl = find_last_slash (path);
@@ -380,7 +458,9 @@ create_file_stream (lisp filename, lisp direction, lisp if_exists,
         sl[1] = '/';
       xfile_stream_alt_pathname (stream) = xstrdup (buf);
     }
+#endif // __GNUG__
 
+#if defined(_MSC_VER)
   HANDLE h = WINFS::CreateFile ((xfile_stream_alt_pathname (stream)
                                  ? xfile_stream_alt_pathname (stream) : path),
                                 access, share, 0, create,
@@ -437,6 +517,34 @@ create_file_stream (lisp filename, lisp direction, lisp if_exists,
 
   xfile_stream_input (stream) = (access & GENERIC_READ) ? fp : 0;
   xfile_stream_output (stream) = (access & GENERIC_WRITE) ? fp : 0;
+#else // __GNUG__
+  int fd = open ((xfile_stream_alt_pathname (stream)
+                  ? xfile_stream_alt_pathname (stream)
+                  : path), access);
+
+  if (fd == -1)
+    {
+      close (fd);
+      FEsimple_crtl_error (errno, filename);
+    }
+
+  FILE *fp = fdopen (fd, (access == O_RDONLY
+			  ? "r"
+			  : (access == O_WRONLY ? "w" : "r+")));
+
+  if (!fp)
+    {
+      int e = errno;
+      close (fd);
+      FEsimple_crtl_error (e, filename);
+    }
+
+  if (if_exists == Kappend)
+    fseek (fp, 0, SEEK_END);
+
+  xfile_stream_input (stream) = (access & O_RDONLY) ? fp : 0;
+  xfile_stream_output (stream) = (access & O_WRONLY) ? fp : 0;
+#endif // __GNUG__
 
   if (direction == Kprobe)
     Fclose (stream, Qnil);
@@ -554,8 +662,10 @@ Fset_end_of_file (lisp stream)
     FEtype_error (stream, Qoutput_stream);
   if (!xstream_open_p (stream))
     FEtype_error (stream, Qopen_stream);
+#if !defined(__GNUG__) ///@todo
   if (!SetEndOfFile (HANDLE (_get_osfhandle (_fileno (xfile_stream_output (stream))))))
     FEsimple_win32_error (GetLastError ());
+#endif // __GNUG__
   return Qnil;
 }
 
@@ -769,6 +879,7 @@ write_buffer_stream (lisp stream, const Char *b, size_t size)
 lisp
 Fconnect (lisp lhost, lisp lport, lisp keys)
 {
+#if !defined(__GNUG__) ///@todo socket
   lisp stream = Qnil;
   try
     {
@@ -790,11 +901,15 @@ Fconnect (lisp lhost, lisp lport, lisp keys)
     }
   Fend_wait_cursor ();
   return stream;
+#else
+  return Qnil;
+#endif 
 }
 
 lisp
 Fmake_listen_socket (lisp lhost, lisp lport, lisp keys)
 {
+#if !defined(__GNUG__) ///@todo
   lisp stream = Qnil;
   try
     {
@@ -819,6 +934,9 @@ Fmake_listen_socket (lisp lhost, lisp lport, lisp keys)
     }
   Fend_wait_cursor ();
   return stream;
+#else
+  return Qnil;
+#endif // __GNUG__
 }
 
 static void
@@ -837,6 +955,7 @@ Faccept_connection (lisp stream, lisp keys)
   valid_socket_stream_p (stream);
   int encoding = stream_encoding (find_keyword (Kencoding, keys, Kcanonical));
   lisp new_stream = Qnil;
+#if !defined(__GNUG__) ///@todo
   try
     {
       new_stream = make_socket_stream ();
@@ -858,12 +977,14 @@ Faccept_connection (lisp stream, lisp keys)
     {
       FEsocket_error (e.error_code ());
     }
+#endif // __GNUG__
   return new_stream;
 }
 
 static void
 close_socket_stream (lisp stream, int abort)
 {
+#if !defined(__GNUG__)
   sockinet *so = xsocket_stream_sock (stream);
   xsocket_stream_sock (stream) = 0;;
   xstream_open_p (stream) = 0;
@@ -877,11 +998,13 @@ close_socket_stream (lisp stream, int abort)
       FEsocket_error (e.error_code ());
     }
   delete so;
+#endif // __GNUG__
 }
 
 lisp
 Fsocket_stream_local_address (lisp stream)
 {
+#if !defined(__GNUG__) ///@todo
   valid_socket_stream_p (stream);
   try
     {
@@ -893,11 +1016,15 @@ Fsocket_stream_local_address (lisp stream)
     {
       return FEsocket_error (e.error_code ());
     }
+#else
+  return Qnil;
+#endif // __GNUG__
 }
 
 lisp
 Fsocket_stream_local_name (lisp stream)
 {
+#if !defined(__GNUG__)
   valid_socket_stream_p (stream);
   try
     {
@@ -910,11 +1037,15 @@ Fsocket_stream_local_name (lisp stream)
     {
       return FEsocket_error (e.error_code ());
     }
+#else
+  return Qnil;
+#endif // __GNUG__
 }
 
 lisp
 Fsocket_stream_local_port (lisp stream)
 {
+#if !defined(__GNUG__)
   valid_socket_stream_p (stream);
   try
     {
@@ -926,11 +1057,15 @@ Fsocket_stream_local_port (lisp stream)
     {
       return FEsocket_error (e.error_code ());
     }
+#else
+  return Qnil;
+#endif // __GNUG__
 }
 
 lisp
 Fsocket_stream_peer_address (lisp stream)
 {
+#if !defined(__GNUG__)
   valid_socket_stream_p (stream);
   try
     {
@@ -942,11 +1077,15 @@ Fsocket_stream_peer_address (lisp stream)
     {
       return FEsocket_error (e.error_code ());
     }
+#else
+  return Qnil;
+#endif // __GNUG__
 }
 
 lisp
 Fsocket_stream_peer_name (lisp stream)
 {
+#if !defined(__GNUG__)
   valid_socket_stream_p (stream);
   try
     {
@@ -959,11 +1098,15 @@ Fsocket_stream_peer_name (lisp stream)
     {
       return FEsocket_error (e.error_code ());
     }
+#else
+  return Qnil;
+#endif // __GNUG__
 }
 
 lisp
 Fsocket_stream_peer_port (lisp stream)
 {
+#if !defined(__GNUG__)
   valid_socket_stream_p (stream);
   try
     {
@@ -975,11 +1118,15 @@ Fsocket_stream_peer_port (lisp stream)
     {
       return FEsocket_error (e.error_code ());
     }
+#else
+  return Qnil;
+#endif // __GNUG__
 }
 
 lisp
 Fsocket_stream_set_timeout (lisp stream, lisp ltimeout)
 {
+#if !defined(__GNUG__)
   valid_socket_stream_p (stream);
   int sec, usec;
   double d = ltimeout == Qnil ? -1.0 : coerce_to_double_float (ltimeout);
@@ -994,12 +1141,14 @@ Fsocket_stream_set_timeout (lisp stream, lisp ltimeout)
     }
   xsocket_stream_sock (stream)->send_timeout (sec, usec);
   xsocket_stream_sock (stream)->recv_timeout (sec, usec);
+#endif // __GNUG__
   return Qnil;
 }
 
 lisp
 Fsocket_stream_get_timeout (lisp stream)
 {
+#if !defined(__GNUG__) ///@todo
   valid_socket_stream_p (stream);
   const timeval &tv = xsocket_stream_sock (stream)->send_timeout ();
   if (tv.tv_sec < 0)
@@ -1007,11 +1156,15 @@ Fsocket_stream_get_timeout (lisp stream)
   if (tv.tv_usec)
     return make_double_float (tv.tv_sec + tv.tv_usec / 1000000.0);
   return make_fixnum (tv.tv_sec);
+#else
+  return Qnil;
+#endif // __GNUG__
 }
 
 lisp
 Fsocket_stream_set_oob_inline (lisp stream, lisp on)
 {
+#if !defined(__GNUG__) ///@todo
   valid_socket_stream_p (stream);
   try
     {
@@ -1021,12 +1174,14 @@ Fsocket_stream_set_oob_inline (lisp stream, lisp on)
     {
       return FEsocket_error (e.error_code ());
     }
+#endif // __GNUG__
   return Qt;
 }
 
 lisp
 Fsocket_stream_send_oob_data (lisp stream, lisp string)
 {
+#if !defined(__GNUG__) ///@todo
   valid_socket_stream_p (stream);
   check_string (string);
   int l = w2sl (string);
@@ -1040,6 +1195,7 @@ Fsocket_stream_send_oob_data (lisp stream, lisp string)
     {
       return FEsocket_error (e.error_code ());
     }
+#endif // __GNUG__
   return Qnil;
 }
 
@@ -1230,6 +1386,7 @@ Finteractive_stream_p (lisp stream)
     return Qnil;
   switch (xstream_type (stream))
     {
+#if !defined(__GNUG__)
     case st_file_input:
       return boole (_isatty (_fileno (xfile_stream_input (stream))));
 
@@ -1239,6 +1396,7 @@ Finteractive_stream_p (lisp stream)
     case st_file_io:
       return boole (_isatty (_fileno (xfile_stream_input (stream)))
                     && _isatty (_fileno (xfile_stream_output (stream))));
+#endif // __GNUG__
 
     case st_keyboard:
       return Qt;
@@ -1315,8 +1473,10 @@ readc_stream (lisp stream)
 
       if (xstream_type (stream) == st_keyboard)
         {
+#if !defined(__GNUG__)
           check_kbd_enable ();
           return app.kbdq.fetch (0, 0);
+#endif // __GNUG__
         }
 
       lChar cc = xstream_pending (stream);
@@ -1424,6 +1584,7 @@ readc_stream (lisp stream)
           }
 
         case st_socket:
+#if !defined(__GNUG__)
           try
             {
               int c = xsocket_stream_sock (stream)->sgetc ();
@@ -1454,6 +1615,7 @@ readc_stream (lisp stream)
             {
               FEsocket_error (e.error_code ());
             }
+#endif // __GNUG__
 
         case st_general_input:
           if (!stringp (xgeneral_input_stream_string (stream))
@@ -1502,8 +1664,10 @@ listen_stream (lisp stream)
 
       if (xstream_type (stream) == st_keyboard)
         {
+#if !defined(__GNUG__) ///@todo
           check_kbd_enable ();
           return app.kbdq.listen ();
+#endif // __GNUG__
         }
 
       lChar cc = xstream_pending (stream);
@@ -1514,14 +1678,19 @@ listen_stream (lisp stream)
         {
         case st_file_io:
         case st_file_input:
-#ifdef _MSC_VER
+#if defined(_MSC_VER)
           if (xfile_stream_input (stream)->_cnt > 0)
             return 1;
+#elif defined(__GNUG__)
+	  return 1; ///@todo
 #else
 # error "Not Supported"
 #endif
+
+#if !defined(__GNUG__)
           return WaitForSingleObject (HANDLE (_get_osfhandle (_fileno (xfile_stream_input (stream)))),
                                       0) != WAIT_TIMEOUT;
+#endif // __GNUG__
 
         case st_file_output:
         case st_string_output:
@@ -1561,6 +1730,7 @@ listen_stream (lisp stream)
           }
 
         case st_socket:
+#if !defined(__GNUG__)
           try
             {
               xsocket_stream_sock (stream)->sflush ();
@@ -1570,6 +1740,7 @@ listen_stream (lisp stream)
             {
               FEsocket_error (e.error_code ());
             }
+#endif // __GNUG__
 
         case st_general_input:
           if (stringp (xgeneral_input_stream_string (stream))
@@ -1601,9 +1772,11 @@ peekc_stream (lisp stream)
   switch (xstream_type (stream))
     {
     case st_keyboard:
+#if !defined(__GNUG__) ///@todo
       check_kbd_enable ();
       cc = app.kbdq.fetch (0, 0);
       app.kbdq.push_back (cc);
+#endif // __GNUG__
       break;
 
     case st_buffer:
@@ -1636,7 +1809,9 @@ unreadc_stream (lChar cc, lisp stream)
   switch (xstream_type (stream))
     {
     case st_keyboard:
+#if !defined(__GNUG__) ///@todo
       app.kbdq.push_back (cc);
+#endif // __GNUG__
       break;
 
     case st_buffer:
@@ -1691,12 +1866,14 @@ putc_file_stream (lisp stream, Char cc)
 static void
 putc_sock_stream (lisp stream, Char cc)
 {
+#if !defined(__GNUG__) ///@todo
   if (DBCP (cc))
     xsocket_stream_sock (stream)->sputc (cc >> 8);
   else if (xsocket_stream_encoding (stream) == lstream::ENCODE_CANON
            && cc == '\n')
     xsocket_stream_sock (stream)->sputc ('\r');
   xsocket_stream_sock (stream)->sputc (cc);
+#endif // __GNUG__
 }
 
 void
@@ -1752,8 +1929,10 @@ writec_stream (lisp stream, Char cc)
           break;
 
         case st_status:
+#if !defined(__GNUG__)
           app.status_window.putc (cc);
           xstream_column (stream) = update_column (xstream_column (stream), cc);
+#endif // __GNUG__
           return;
 
         case st_buffer:
@@ -1766,6 +1945,7 @@ writec_stream (lisp stream, Char cc)
           return;
 
         case st_socket:
+#if !defined(__GNUG__)
           try
             {
               putc_sock_stream (stream, cc);
@@ -1775,6 +1955,7 @@ writec_stream (lisp stream, Char cc)
             {
               FEsocket_error (e.error_code ());
             }
+#endif // __GNUG__
           return;
 
         case st_general_output:
@@ -1858,8 +2039,10 @@ write_stream (lisp stream, const Char *b, size_t size)
           break;
 
         case st_status:
+#if !defined(__GNUG__)
           app.status_window.puts (b, size);
           xstream_column (stream) = update_column (xstream_column (stream), b, size);
+#endif // __GNUG__
           return;
 
         case st_buffer:
@@ -1872,6 +2055,7 @@ write_stream (lisp stream, const Char *b, size_t size)
           return;
 
         case st_socket:
+#if !defined(__GNUG__)
           try
             {
               for (const Char *be = b + size; b < be; b++)
@@ -1882,6 +2066,7 @@ write_stream (lisp stream, const Char *b, size_t size)
             {
               FEsocket_error (e.error_code ());
             }
+#endif // __GNUG__
           return;
 
         case st_general_output:
@@ -2006,7 +2191,9 @@ flush_stream (lisp stream)
           break;
 
         case st_status:
+#if !defined(__GNUG__)
           app.status_window.flush ();
+#endif // __GNUG__
           return;
 
         case st_buffer:
@@ -2016,6 +2203,7 @@ flush_stream (lisp stream)
           return;
 
         case st_socket:
+#if !defined(__GNUG__)
           try
             {
               xsocket_stream_sock (stream)->sflush ();
@@ -2024,6 +2212,7 @@ flush_stream (lisp stream)
             {
               FEsocket_error (e.error_code ());
             }
+#endif // __GNUG__
           return;
 
         case st_general_output:

@@ -120,8 +120,10 @@ buffer_info::mode_name (char *b, char *be, int c) const
     {
       if (b_bufp->b_narrow_depth)
         b = docopy (b, be, "Narrow", f);
+#if !defined(__GNUG__) ///@todo
       if (Fkbd_macro_saving_p () != Qnil)
         b = docopy (b, be, "Def", f);
+#endif // __GNUG__
       for (lisp al = xsymbol_value (Vminor_mode_alist);
            consp (al); al = xcdr (al))
         b = minor_mode (xcar (al), b, be, f);
@@ -141,6 +143,7 @@ buffer_info::mode_name (char *b, char *be, int c) const
   return b;
 }
 
+#if !defined(__GNUG__) ///@todo
 char *
 buffer_info::ime_mode (char *b, char *be) const
 {
@@ -151,6 +154,7 @@ buffer_info::ime_mode (char *b, char *be) const
                       ? "‚ " : "--"),
                   be - b);
 }
+#endif // __GNUG__
 
 char *
 buffer_info::position (char *b, char *be) const
@@ -166,6 +170,7 @@ buffer_info::position (char *b, char *be) const
   return b;
 }
 
+#if !defined(__GNUG__) ///@todo
 char *
 buffer_info::host_name (char *b, char *be, int pound) const
 {
@@ -177,6 +182,7 @@ buffer_info::host_name (char *b, char *be, int pound) const
     }
   return b;
 }
+#endif // __GNUG__
 
 char *
 buffer_info::format (lisp fmt, char *b, char *be) const
@@ -236,7 +242,9 @@ buffer_info::format (lisp fmt, char *b, char *be) const
               break;
 
             case 'h':
+#if !defined(__GNUG__)
               b = host_name (b, be, pound);
+#endif // __GNUG__
               break;
 
             case 'b':
@@ -265,7 +273,9 @@ buffer_info::format (lisp fmt, char *b, char *be) const
               break;
 
             case 'i':
+#if !defined(__GNUG__)
               b = ime_mode (b, be);
+#endif // __GNUG__
               break;
 
             case 'P':

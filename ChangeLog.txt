@@ -1,12 +1,21 @@
 2010-01-03  bulb  <ttomise@gmail.com>
+	
+	* src : fix dependencies for MacOSX buiilds.
+	GCCとVCでコンパイル通るようにする(OSX上GCC/VC2005EEで確認)。
+	基本的方針として、未実装部分やWin32依存部分を_MSC_VERと__GNUG__
+	で切り分ける
+	現状、OSXのGCCでコンパイルだけは通る。
+	
 	* src : add main.cc init_unix.cc toplev_unix.cc dataP_unix.h
 	UNIX環境でビルドが通すための準備。
 	
 2009-12-23  bulb  <ttomise@gmail.com>
+	
 	* src : fix gen-syms for MinGW (_alloca, __cdecl, PATH_MAX)
 	MinGWでもコンパイル通るように修正。
 	
 2009-12-16  bulb  <ttomise@gmail.com>
+	
 	* src : fix gen-syms for gcc
 
 2009-12-16  NANRI Masaoki  <southly@gmail.com>
@@ -21,7 +30,7 @@
 	必要な箇所だけ変数宣言をforループの前に出すのを基本方針にしている。
 
 2009-12-10  NANRI Masaoki  <southly@gmail.com>
-
+	
 	* src : fix format "~n@A".
 	http://d.hatena.ne.jp/bowbow99/20090829/1251547986
 

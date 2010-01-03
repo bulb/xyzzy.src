@@ -1,10 +1,13 @@
 #include "cdecl.h"
 #include "mman.h"
-#include "vfs.h"
+#if !defined(__GNUG__)
+# include "vfs.h"
+#endif // __GNUG__
 
 void
 mapf::close ()
 {
+#if !defined(__GNUG__)
   if (mf_base)
     UnmapViewOfFile (mf_base);
   if (mf_hmap)
@@ -12,11 +15,13 @@ mapf::close ()
   if (mf_hfile != INVALID_HANDLE_VALUE)
     CloseHandle (mf_hfile);
   init ();
+#endif // __GNUG__
 }
 
 int
 mapf::open (const char *path, int mode, int share_ok)
 {
+#if !defined(__GNUG__)
   mf_hfile = WINFS::CreateFile (path, GENERIC_READ, FILE_SHARE_READ, 0,
                                 OPEN_EXISTING, mode, 0);
   if (mf_hfile == INVALID_HANDLE_VALUE)
@@ -40,5 +45,6 @@ mapf::open (const char *path, int mode, int share_ok)
       if (!mf_base)
         return 0;
     }
+#endif // __GNUG__
   return 1;
 }

@@ -1,6 +1,10 @@
 #include "ed.h"
 #include "signal.h"
 
+#if defined(__GNUG__)
+#  include <stdarg.h> // for va_start
+#endif // __GNUG__
+
 #ifdef DEBUG
 static void check_condition_def ();
 #endif

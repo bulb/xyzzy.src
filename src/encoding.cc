@@ -617,15 +617,27 @@ utf_to_internal_stream::per_lang_putw (int lang)
     default:
     case ENCODING_LANG_JP:
     case ENCODING_LANG_JP2:
+#if defined(_MSC_VER)
       return &putw_jp;
+#else  // __GNUG__
+      return &utf_to_internal_stream::putw_jp;
+#endif // __GNUG__
 
     case ENCODING_LANG_KR:
     case ENCODING_LANG_CN_GB:
     case ENCODING_LANG_CN_BIG5:
+#if defined(_MSC_VER)
       return &putw_gen;
+#else  // __GNUG__
+      return &utf_to_internal_stream::putw_gen;
+#endif // __GNUG__
 
     case ENCODING_LANG_CN:
+#if defined(_MSC_VER)
       return &putw_cn;
+#else  // __GNUG__
+      return &utf_to_internal_stream::putw_cn;
+#endif // __GNUG__
     }
 }
 

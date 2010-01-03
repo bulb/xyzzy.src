@@ -200,7 +200,11 @@ struct Glyphs
   ~Glyphs ();
   Glyphs (const Glyphs &);
   Glyphs (glyph_rep *);
+#if defined(_MSC_VER)
   void operator = (Glyphs &);
+#else // __GNUG__
+  void operator = (const Glyphs &);
+#endif // __GNUG__
 protected:
   void delete_rep ();
 };
@@ -245,7 +249,11 @@ Glyphs::~Glyphs ()
 }
 
 inline void
+#if defined(_MSC_VER)
 Glyphs::operator = (Glyphs &src)
+#else // __GNUG__
+Glyphs::operator = (const Glyphs &src)
+#endif // __GNUG__
 {
   delete_rep ();
   g_rep = src.g_rep;
@@ -253,6 +261,7 @@ Glyphs::operator = (Glyphs &src)
     g_rep->gr_ref++;
 }
 
+#if !defined(__GNUG__) ///@todo tagSCROLLINFO
 class ScrollInfo: public tagSCROLLINFO
 {
 public:
@@ -260,11 +269,13 @@ public:
   seen sb_seen;
   ScrollInfo () : sb_seen (undef) {cbSize = sizeof (SCROLLINFO);}
 };
+#endif // __GNUG__
 
 struct wheel_info;
 
 struct Window
 {
+#if !defined(__GNUG__) ///<@todo
   static wcolor_index forecolor_indexes[GLYPH_NFOREGROUND_COLORS];
   static wcolor_index backcolor_indexes[GLYPH_NFOREGROUND_COLORS];
   static COLORREF default_colors[WCOLOR_MAX];
@@ -278,14 +289,15 @@ struct Window
   static COLORREF w_textprop_backcolor[GLYPH_TEXTPROP_NCOLORS];
   static XCOLORREF w_textprop_xforecolor[GLYPH_TEXTPROP_NCOLORS];
   static XCOLORREF w_textprop_xbackcolor[GLYPH_TEXTPROP_NCOLORS];
-
+#endif // __GNUG__
   Window *w_prev;
   Window *w_next;
 
   lisp lwp;
-
+#if !defined(__GNUG__) ///<TODO
   HWND w_hwnd;
   HWND w_hwnd_ml;
+#endif // __GNUG__
   RECT w_order;
   RECT w_rect;
   SIZE w_client;
@@ -348,10 +360,10 @@ struct Window
   int w_flags_mask;
   int w_flags;
   int w_last_flags;
-
+#if !defined(__GNUG__) ///TODO
   ScrollInfo w_vsinfo;
   ScrollInfo w_hsinfo;
-
+#endif // __GNUG__
   Glyphs w_glyphs;
 
   Buffer::selection_type w_selection_type;
@@ -363,8 +375,10 @@ struct Window
   Buffer::selection_type w_reverse_temp;
   Region w_reverse_region;
 
+#if !defined(__GNUG__)
   const COLORREF *w_colors;
   COLORREF w_colors_buf[WCOLOR_MAX];
+#endif // __GNUG__
 
   enum
     {
@@ -401,8 +415,10 @@ struct Window
 
   int w_ignore_scroll_margin;
 
+#if !defined(__GNUG__) ///<TODO
   static void init_colors (const XCOLORREF * = 0, const XCOLORREF * = 0,
                            const XCOLORREF * = 0, const XCOLORREF * = 0);
+#endif // __GNUG__
   void change_color ();
 
   int flags () const;
@@ -415,7 +431,9 @@ struct Window
   void process_vscroll (int);
   void update_hscroll_bar ();
   void process_hscroll (int);
+#if !defined(__GNUG__) ///<TODO
   void wheel_scroll (const wheel_info &);
+#endif // __GNUG__
 
   Window (int = 0, int = 0);
   Window (const Window &);
@@ -428,6 +446,7 @@ struct Window
   void set_buffer (Buffer *);
   void calc_client_size (int, int);
   void reframe ();
+#if !defined(__GNUG__) ///<TODO
   void paint_glyphs (HDC, HDC, const glyph_t *, const glyph_t *, const glyph_t *,
                      char *, const INT *, int, int, int) const;
   void paint_line (HDC, HDC, glyph_data *, const glyph_data *,
@@ -435,12 +454,15 @@ struct Window
   void paint_window (HDC) const;
   void paint_region (HDC, int, int) const;
   void find_motion () const;
+#endif // __GNUG__
   void redraw_window (Point &, long, int, int) const;
   int kwdmatch (lisp, const Char *, const Chunk *, int &, int &, int, int &, int) const;
   int kwdmatch (lisp, const Point &, int &, int &, int &, int) const;
   int redraw_line (glyph_data *, Point &, long, long, int, lisp,
                    syntax_info *, textprop *&, class regexp_kwd &) const;
+#if !defined(__GNUG__) ///<TODO
   int next_draw_point (Point &, long) const;
+#endif // __GNUG__
   void scroll_lines (int);
   int refresh (int);
   void pending_refresh ();
@@ -448,10 +470,14 @@ struct Window
   void scroll_up_region (int, int, int, int) const;
   void update_window ();
   void clear_window ();
+#if !defined(__GNUG__) ///<TODO
   void paint_mode_line (HDC);
+#endif // __GNUG__
   void paint_mode_line ();
+#if !defined(__GNUG__) ///<TODO
   void paint_background (HDC) const;
   void paint_background (HDC, int, int, int, int) const;
+#endif // __GNUG__
   void winsize_changed (int, int);
   point_t bol_point (point_t) const;
   point_t folded_bol_point (point_t) const;
@@ -472,6 +498,7 @@ struct Window
     }
   int caret_line () const
     {return w_linenum - w_last_top_linenum;}
+#if !defined(__GNUG__) ///<TODO
   static int caret_xpixel (int column)
     {return (column * app.text_font.cell ().cx
              + app.text_font.cell ().cx / 2);}
@@ -481,13 +508,18 @@ struct Window
     {return caret_xpixel (caret_column ());}
   int caret_y () const
     {return caret_ypixel (caret_line ());}
+#endif // __GNUG__
   void hide_caret () const;
   void update_caret () const;
   static void update_last_caret ();
+#if !defined(__GNUG__) ///<TODO
   static void update_caret (HWND, int, int, int, int, COLORREF);
+#endif // __GNUG__
   static void delete_caret ();
+#if !defined(__GNUG__) ///<TODO
   static void compute_geometry (const SIZE & = app.active_frame.size,
                                 int = app.text_font.cell ().cy);
+#endif // __GNUG__
   static void move_all_windows (int = 1);
   static void repaint_all_windows ();
   static void destroy_windows ();
@@ -505,21 +537,25 @@ struct Window
       RE_TOP = 4,
       RE_BOTTOM = 8
     };
+#if !defined(__GNUG__)
   int find_resizeable_edge (LONG RECT::*, LONG RECT::*, LONG RECT::*, LONG RECT::*) const;
   int find_resizeable_edges () const;
   static Window *find_point_window (POINT &p);
   static Window *find_scr_point_window (const POINT &, int, int *);
   void resize_edge (LONG RECT::*, LONG RECT::*, LONG RECT::*, LONG RECT::*) const;
+#endif // __GNUG__
   void resize_edge (int) const;
   int delete_window ();
 
   void set_window ();
 
   static Window *coerce_to_window (lisp);
+#if !defined(__GNUG__) ///<TODO 
   static Window *find_point_window (const POINT &, int &);
   Window *find_resizeable_window (LONG RECT::*, LONG RECT::*, LONG RECT::*, LONG RECT::*, LONG RECT::*) const;
   Window *find_horiz_window (LONG RECT::*) const;
   Window *find_vert_window (LONG RECT::*) const;
+#endif // __GNUG__
   int get_horiz_min (int, int) const;
   int get_horiz_max (int, int) const;
   int get_vert_min (int, int) const;
@@ -532,25 +568,34 @@ struct Window
   int enlarge_window_vert (int);
   int enlarge_window (int, int);
 
+#if !defined(__GNUG__)
   static int frame_window_setcursor (HWND, WPARAM, LPARAM);
   static int frame_window_resize (HWND, LPARAM, const POINT * = 0);
   int frame_window_resize (HWND, const POINT &, int);
+#endif // __GNUG__
 
   int redraw_mode_line ();
+#if !defined(__GNUG__)
   int paint_mode_line_point (HDC);
+#endif // __GNUG__
   static void modify_all_mode_line ();
 
   void update_mode_line_vars (int, lisp);
   void update_mode_line_vars ();
 
+#if !defined(__GNUG__)
   static void change_parameters (const FontSetParam &,
                                  const XCOLORREF *, const XCOLORREF *,
                                  const XCOLORREF *, const XCOLORREF *);
+#endif // __GNUG__
   void invalidate_glyphs ();
 
+#if !defined(__GNUG__)
   void discard_invalid_region (const PAINTSTRUCT &, RECT &);
+#endif // __GNUG__
 
   int alloc_glyph_rep ();
+#if !defined(__GNUG__)
   COLORREF glyph_forecolor (glyph_t) const;
   COLORREF glyph_backcolor (glyph_t) const;
 
@@ -565,6 +610,7 @@ struct Window
   void erase_cursor_line (HDC) const;
   void paint_cursor_line (HDC, int) const;
   void point2window_pos (point_t, POINT &) const;
+#endif // __GNUG__
 };
 
 inline int
@@ -603,6 +649,7 @@ Window::minibuffer_window_p () const
   return !w_next;
 }
 
+#if !defined(__GNUG__)
 inline void
 Window::paint_background (HDC hdc) const
 {
@@ -640,6 +687,7 @@ Window::glyph_backcolor (glyph_t c) const
     }
   return w_textprop_backcolor[y >> GLYPH_TEXTPROP_BG_SHIFT_BITS];
 }
+#endif // __GNUG__
 
 struct WindowConfiguration
 {

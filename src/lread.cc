@@ -2,6 +2,9 @@
 #include "StrBuf.h"
 #include <float.h>
 #include <errno.h>
+#if defined(__GNUG__)
+# include <math.h>
+#endif // __GNUG__
 
 class Token: public StrBuf
 {
@@ -2128,7 +2131,9 @@ load_file (lisp filename, lisp realname, lisp if_does_not_exist,
           b += l;
         }
       b = a2w (b, "...\n");
+#if !defined(__GNUG__) ///<TODO
       app.status_window.puts (buf, b - buf);
+#endif //__GNUG__
       b--;
     }
 
@@ -2156,7 +2161,9 @@ load_file (lisp filename, lisp realname, lisp if_does_not_exist,
   if (verbose)
     {
       b = a2w (b, "done\n");
+#if !defined(__GNUG__) ///<TODO
       app.status_window.puts (buf, b - buf);
+#endif // __GNUG__
     }
 
   return Qt;

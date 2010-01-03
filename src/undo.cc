@@ -52,7 +52,11 @@ public:
   point_t undo_point () const {return u_point;}
   static undo_status status () {return u_status;}
 
+#if defined(_MSC_VER)
   friend Buffer;
+#else  // __GNUG__
+  friend struct Buffer;
+#endif // __GNUG__
   friend class SaveUndoStatus;
   friend void remove_undo_info (UndoInfo *);
 };
@@ -71,10 +75,18 @@ class UndoInsert: public UndoInfo
 public:
   UndoInsert (point_t point, int size) : UndoInfo (point), u_size (size) {}
   virtual int undo (Window *);
+#if defined(_MSC_VER)
   friend Buffer;
+#else  // __GNUG__
+  friend struct Buffer;
+#endif // __GNUG__
 };
 
+#if defined(_MSC_VER)
 static void
+#else  // __GNUG__
+void
+#endif // __GNUG__
 remove_undo_info (UndoInfo *up)
 {
   UndoInfo *prev;
@@ -194,7 +206,11 @@ protected:
        : UndoInfo (point.p_point), u_size (size), u_buffer (0) {}
   virtual ~UndoRegion () {if (u_buffer) free (u_buffer);}
   virtual int undo (Window *) = 0;
+#if defined(_MSC_VER)
   friend Buffer;
+#else  // __GNUG__
+  friend struct Buffer;
+#endif // __GNUG__
 };
 
 int
@@ -298,6 +314,7 @@ Buffer::save_modify_undo (const Point &point, int size)
   return 1;
 }
 
+#if !defined(__GNUG__) ///@todo FileTime
 void
 Buffer::save_modtime_undo (const FileTime &modtime)
 {
@@ -307,6 +324,7 @@ Buffer::save_modtime_undo (const FileTime &modtime)
   for (u = b_redo; u; u = u->prev ())
     u->modify ();
 }
+#endif // __GNUG__
 
 void
 Buffer::undo_boundary ()

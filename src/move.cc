@@ -564,6 +564,7 @@ Buffer::goto_column (Point &point, long column, int exceed) const
 int
 Window::scroll_window (long nlines, int abs)
 {
+#if !defined(__GNUG__)
   if (w_bufp->b_fold_columns == Buffer::FOLD_NONE)
     {
       long ol = w_bufp->point_linenum (w_disp);
@@ -603,12 +604,14 @@ Window::scroll_window (long nlines, int abs)
       w_bufp->check_range (w_point);
       w_disp_flags &= ~WDF_GOAL_COLUMN;
     }
+#endif // __GNUG__
   return 1;
 }
 
 int
 Window::scroll_window_horizontally (long ncolumns, int abs)
 {
+#if !defined(__GNUG__)
   long oc = w_top_column;
   long goal = max (0L, abs ? ncolumns : oc + ncolumns);
   if (goal == oc)
@@ -677,6 +680,7 @@ Window::scroll_window_horizontally (long ncolumns, int abs)
   if (w_point.p_point < w_bufp->b_contents.p1)
     w_bufp->goto_char (w_point, w_bufp->b_contents.p1);
   w_disp_flags |= WDF_GOAL_COLUMN;
+#endif // __GNUG__
   return 1;
 }
 
@@ -1182,11 +1186,13 @@ Buffer::parse_fold_line (Point &point, long max_width, const glyph_width &gw,
       if (c == '\n')
         break;
 
+#if !defined(__GNUG__)
       if (c == '\t')
         pixel += (get_glyph_width (' ', gw)
                   * (b_tab_columns - f.column % b_tab_columns));
       else
         pixel += get_glyph_width (c, gw);
+#endif // __GNUG__
       int cl = char_columns (c, f.column);
       f.column += cl;
       if (pixel >= max_width)
@@ -2137,9 +2143,11 @@ Fdelete_marker (lisp marker)
   Buffer *bp = xmarker_buffer (marker);
   if (!bp)
     return Qnil;
+#if !defined(__GNUG__)
   if (processp (bp->lprocess)
       && Fprocess_marker (bp->lprocess) == marker)
     return Qnil;
+#endif // __GNUG__
   delq (marker, &bp->lmarkers);
   xmarker_buffer (marker) = 0;
   xmarker_point (marker) = NO_MARK_SET;

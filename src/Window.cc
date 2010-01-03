@@ -1,7 +1,9 @@
 #include "ed.h"
+#if !defined(__GNUG__)
 #include "conf.h"
 #include "ipc.h"
 #include "wheel.h"
+#endif // __GNUG__
 
 #define RULER_HEIGHT 13
 #define FRAME_WIDTH 2
@@ -28,6 +30,7 @@ WindowConfiguration *WindowConfiguration::wc_chain;
 #define RVB WCOLOR_REVERSE
 #define LNF WCOLOR_LINENUM
 
+#if defined(_MSC_VER)
 wcolor_index Window::forecolor_indexes[] =
 {
 //nrm ctl kw1 kw2 kw3 k1r k2r k3r -   -   -    -  lnm  str tag com   // 反転 選択 無効
@@ -126,7 +129,11 @@ const wcolor_index_name wcolor_index_names[] =
   {0, RGB (0, 0, 0), "選択モード行文字色"},
   {0, RGB (0, 0, 0), "選択モード行背景色"},
 };
+#else // __GNUG__
+///@todo COLORREF
+#endif // __GNUG__
 
+#if !defined(__GNUG__)
 ModelineParam::ModelineParam ()
      : m_hfont (0)
 {
@@ -165,7 +172,9 @@ ModelineParam::init (HFONT hf)
   SelectObject (hdc, of);
   ReleaseDC (0, hdc);
 }
+#endif // __GNUG__
 
+#if !defined(__GNUG__)
 StatusWindow::StatusWindow ()
      : sw_hwnd (0), sw_b (sw_buf)
 {
@@ -328,7 +337,7 @@ StatusWindow::paint (const DRAWITEMSTRUCT *dis)
 
   return 1;
 }
-
+#endif // __GNUG__
 
 glyph_rep::glyph_rep (int w, int h)
 {
@@ -359,7 +368,11 @@ glyph_rep::copy (const glyph_rep *src)
       int y;
       for (y = 0; y < h; y++)
         {
+#if defined(_MSC_VER)
           int w = min (gr_size.cx, LONG (src->gr_oglyph[y]->gd_len));
+#else // __GNUG__
+          int w = min (int(gr_size.cx), int(src->gr_oglyph[y]->gd_len));
+#endif // __GNUG__
           memcpy (gr_oglyph[y]->gd_cc, src->gr_oglyph[y]->gd_cc, sizeof (glyph_t) * w);
           glyph_t *g, *ge;
           for (g = gr_oglyph[y]->gd_cc + w,
@@ -404,6 +417,7 @@ glyph_rep::copy (const glyph_rep *src)
 void
 Window::init (int minibufp, int temporary)
 {
+#if !defined(__GNUG__)
   w_last_bufp = 0;
   w_disp_flags = WDF_WINDOW | WDF_MODELINE;
   w_last_mark_linenum = -1;
@@ -465,6 +479,7 @@ Window::init (int minibufp, int temporary)
   w_hsinfo.nPage = UINT (-1);
   w_hsinfo.nPos = -1;
   update_hscroll_bar ();
+#endif // __GNUG__
 }
 
 Window::Window (const Window &src)
@@ -542,10 +557,12 @@ Window::~Window ()
 {
   if (windowp (lwp))
     xwindow_wp (lwp) = 0;
+#if !defined(__GNUG__)
   if (IsWindow (w_hwnd))
     DestroyWindow (w_hwnd);
   if (IsWindow (w_hwnd_ml))
     DestroyWindow (w_hwnd_ml);
+#endif // __GNUG__
 }
 
 void
@@ -567,6 +584,7 @@ Window::save_buffer_params ()
 void
 Window::change_color ()
 {
+#if !defined(__GNUG__)
   COLORREF cbuf[USER_DEFINABLE_COLORS];
   COLORREF *cc;
   if (w_bufp && w_bufp->b_colors_enable)
@@ -593,6 +611,7 @@ Window::change_color ()
   else
     w_colors = default_colors;
   invalidate_glyphs ();
+#endif // __GNUG__
 }
 
 void
@@ -642,6 +661,7 @@ Window::set_window ()
   w_bufp->check_range (w_point);
 }
 
+#if !defined(__GNUG__)
 void
 Window::init_colors (const XCOLORREF *colors, const XCOLORREF *mlcolors,
                      const XCOLORREF *fg_colors, const XCOLORREF *bg_colors)
@@ -698,6 +718,7 @@ Window::init_colors (const XCOLORREF *colors, const XCOLORREF *mlcolors,
     }
   flush_conf ();
 }
+#endif // __GNUG__
 
 inline void
 Window::invalidate_glyphs ()
@@ -708,6 +729,7 @@ Window::invalidate_glyphs ()
   w_cursor_line.ypixel = -1;
 }
 
+#if !defined(__GNUG__)
 void
 Window::change_parameters (const FontSetParam &param,
                            const XCOLORREF *colors, const XCOLORREF *mlcolors,
@@ -723,10 +745,12 @@ Window::change_parameters (const FontSetParam &param,
   for (Window *wp = app.active_frame.windows; wp; wp = wp->w_next)
     wp->invalidate_glyphs ();
 }
+#endif // __GNUG__
 
 static void
 set_bgmode ()
 {
+#if !defined(__GNUG__)
   wcolor_index c = (Window::w_default_flags & Window::WF_BGCOLOR_MODE
                     ? WCOLOR_TEXT : WCOLOR_REVERSE);
   for (int i = GLYPH_REVERSED >> GLYPH_COLOR_SHIFT_BITS;
@@ -734,11 +758,13 @@ set_bgmode ()
        i++)
     if (i != ((GLYPH_REVERSED | GLYPH_LINENUM) >> GLYPH_COLOR_SHIFT_BITS))
       Window::backcolor_indexes[i] = c;
+#endif // __GNUG__
 }
 
 void
 Window::create_default_windows ()
 {
+#if !defined(__GNUG__)
   app.text_font.init ();
 
   XCOLORREF cc[USER_DEFINABLE_COLORS];
@@ -827,6 +853,7 @@ Window::create_default_windows ()
     }
   Window::compute_geometry (osize);
   Window::move_all_windows (0);
+#endif // __GNUG__
 }
 
 int
@@ -844,6 +871,7 @@ Window::alloc_glyph_rep ()
 void
 Window::calc_client_size (int width, int height)
 {
+#if !defined(__GNUG__)
   w_client.cx = max (0, width);
   w_client.cy = max (0, height);
   w_ech.cx = max (0L, ((w_client.cx - app.text_font.cell ().cx / 2)
@@ -864,6 +892,7 @@ Window::calc_client_size (int width, int height)
         w_glyphs = Glyphs (0);
       w_disp_flags |= WDF_WINDOW | WDF_MODELINE | WDF_WINSIZE_CHANGED;
     }
+#endif // __GNUG__
 }
 
 static void
@@ -917,6 +946,7 @@ compute_size (int *o, int n, int old_size, int new_size)
       o[i] = o[i + 1];
 }
 
+#if !defined(__GNUG__)
 void
 Window::compute_geometry (const SIZE &old_size, int lcell)
 {
@@ -989,10 +1019,12 @@ Window::compute_geometry (const SIZE &old_size, int lcell)
 
   app.active_frame.windows_moved = 1;
 }
+#endif // __GNUG__
 
 void
 Window::move_all_windows (int update)
 {
+#if !defined(__GNUG__)
   int mod = 0;
   app.active_frame.windows_moved = 0;
   Window *wp;
@@ -1071,14 +1103,17 @@ Window::move_all_windows (int update)
           UpdateWindow (app.toplev);
         }
     }
+#endif // __GNUG__
 }
 
 void
 Window::repaint_all_windows ()
 {
+#if !defined(__GNUG__)
   for (Window *wp = app.active_frame.windows; wp; wp = wp->w_next)
     if (!GetUpdateRect (wp->w_hwnd, 0, 0))
       wp->update_window ();
+#endif // __GNUG__
 }
 
 void
@@ -1096,6 +1131,7 @@ Window::destroy_windows ()
 void
 Window::update_vscroll_bar ()
 {
+#if !defined(__GNUG__)
   w_vsinfo.fMask = 0;
   if (flags () & WF_VSCROLL_BAR)
     {
@@ -1141,11 +1177,13 @@ Window::update_vscroll_bar ()
     }
   if (w_vsinfo.fMask)
     SetScrollInfo (w_hwnd, SB_VERT, &w_vsinfo, 1);
+#endif // __GNUG__
 }
 
 int
 Window::vscroll_lines () const
 {
+#if !defined(__GNUG__)
   int h = w_ech.cy;
   if (xsymbol_value (Vpage_scroll_half_window) != Qunbound
       && xsymbol_value (Vpage_scroll_half_window) != Qnil)
@@ -1153,11 +1191,13 @@ Window::vscroll_lines () const
   else
     h -= symbol_value_as_integer (Vnext_screen_context_lines, w_bufp);
   return max (h, 1);
+#endif // __GNUG__
 }
 
 void
 Window::process_vscroll (int code)
 {
+#if !defined(__GNUG__)
   if (!w_bufp)
     return;
 
@@ -1198,8 +1238,10 @@ Window::process_vscroll (int code)
     }
 
   refresh_screen (1);
+#endif // __GNUG__
 }
 
+#if !defined(__GNUG__)
 void
 Window::wheel_scroll (const wheel_info &wi)
 {
@@ -1222,10 +1264,12 @@ Window::wheel_scroll (const wheel_info &wi)
       refresh_screen (1);
     }
 }
+#endif // __GNUG__
 
 void
 Window::update_hscroll_bar ()
 {
+#if !defined(__GNUG__) ///@todo tagSCROLLINFO
   w_hsinfo.fMask = 0;
   if (flags () & WF_HSCROLL_BAR)
     {
@@ -1278,11 +1322,13 @@ Window::update_hscroll_bar ()
     }
   if (w_hsinfo.fMask)
     SetScrollInfo (w_hwnd, SB_HORZ, &w_hsinfo, 1);
+#endif // __GNUG__
 }
 
 void
 Window::process_hscroll (int code)
 {
+#if !defined(__GNUG__)
   if (!w_bufp)
     return;
 
@@ -1323,6 +1369,7 @@ Window::process_hscroll (int code)
     }
 
   refresh_screen (1);
+#endif // __GNUG__
 }
 
 Window *
@@ -1364,6 +1411,7 @@ Window::modify_all_mode_line ()
 void
 Window::split (int nlines, int verticalp)
 {
+#if !defined(__GNUG__)
   if (minibuffer_window_p ())
     FEsimple_error (Ecannot_split_minibuffer_window);
 
@@ -1523,6 +1571,7 @@ Window::split (int nlines, int verticalp)
   compute_geometry ();
   wp->change_color ();
   Buffer::maybe_modify_buffer_bar ();
+#endif // __GNUG__
 }
 
 lisp
@@ -1585,7 +1634,9 @@ Window::delete_other_windows ()
   w_order.top = 0;
   w_order.bottom = 1;
 
+#if !defined(__GNUG__)
   compute_geometry ();
+#endif // __GNUG__
   Buffer::maybe_modify_buffer_bar ();
 }
 
@@ -1596,6 +1647,7 @@ Fdelete_other_windows ()
   return Qt;
 }
 
+#if !defined(__GNUG__)
 int
 Window::find_resizeable_edge (LONG RECT::*edge1, LONG RECT::*edge2,
                               LONG RECT::*match1, LONG RECT::*match2) const
@@ -1753,11 +1805,16 @@ Window::delete_window ()
   Buffer::maybe_modify_buffer_bar ();
   return 1;
 }
+#endif // __GNUG__
 
 lisp
 Fdelete_window ()
 {
+#if !defined(__GNUG__) ///@todo delete_window
   return boole (selected_window ()->delete_window ());
+#else
+  return Qnil;
+#endif // __GNUG__
 }
 
 lisp
@@ -1851,43 +1908,64 @@ Fset_window (lisp window)
 lisp
 Fscreen_width ()
 {
+#if defined(_MSC_VER)
   return make_fixnum (app.active_frame.size.cx / app.text_font.cell ().cx);
+#else // __GNUG__
+  return Qnil;
+#endif // __GNUG__
 }
 
 lisp
 Fscreen_height ()
 {
+#if defined(_MSC_VER)
   return make_fixnum (app.active_frame.size.cy / app.text_font.cell ().cy);
+#else // __GNUG__
+  return Qnil;
+#endif // __GNUG__
 }
 
 lisp
 Fwindow_height (lisp window)
 {
+#if defined(_MSC_VER)
   int h = (Window::coerce_to_window (window)->w_clsize.cy
            / app.text_font.cell ().cy);
   return make_fixnum (max (h, 1));
+#else // __GNUG__
+  return Qnil;
+#endif // __GNUG__
 }
 
 lisp
 Fwindow_width (lisp window)
 {
+#if defined(_MSC_VER)
   int w = ((Window::coerce_to_window (window)->w_clsize.cx
             - app.text_font.cell ().cx / 2)
            / app.text_font.cell ().cx);
   return make_fixnum (max (w, 1));
+#else // __GNUG__
+  return Qnil;
+#endif // __GNUG__
 }
 
 lisp
 Fwindow_lines (lisp window)
 {
+#if defined(_MSC_VER)
   int h = (Window::coerce_to_window (window)->w_clsize.cy
            / app.text_font.cell ().cy);
   return make_fixnum (max (h, 1));
+#else // __GNUG__
+  return Qnil;
+#endif // __GNUG__
 }
 
 lisp
 Fwindow_columns (lisp window)
 {
+#if defined(_MSC_VER)
   Window *wp = Window::coerce_to_window (window);
   int w = ((wp->w_clsize.cx - app.text_font.cell ().cx / 2)
            / app.text_font.cell ().cx);
@@ -1898,6 +1976,9 @@ Fwindow_columns (lisp window)
       && wp->w_bufp->b_fold_mode == Buffer::FOLD_WINDOW)
     w--;
   return make_fixnum (max (w, 1));
+#else // __GNUG__
+  return Qnil;
+#endif // __GNUG__
 }
 
 lisp
@@ -1927,14 +2008,19 @@ Fget_window_start_line (lisp window)
 lisp
 Fget_window_handle (lisp window)
 {
+#if defined(_MSC_VER)
   if (!window || window == Qnil)
     return make_fixnum (long (app.toplev));
   return make_fixnum (long (Window::coerce_to_window (window)->w_hwnd));
+#else  // __GNUG__
+  return Qnil;
+#endif // __GNUG__
 }
 
 int
 Window::find_horiz_order (int y)
 {
+#if !defined(__GNUG__)
   int y0 = y;
   for (Window *wp = app.active_frame.windows; wp; wp = wp->w_next)
     {
@@ -1944,8 +2030,12 @@ Window::find_horiz_order (int y)
         y0 = wp->w_rect.bottom;
     }
   return y == y0 ? -1 : y0;
+#else
+  return 0; ///@todo
+#endif
 }
 
+#if !defined(__GNUG__) ///@todo
 void
 Window::change_horiz_size (int bottom, int xmin, int xmax)
 {
@@ -2349,6 +2439,7 @@ Window::frame_window_resize (HWND hwnd, LPARAM lparam, const POINT *real)
     return 0;
   return wp->frame_window_resize (hwnd, real ? *real : point, vert);
 }
+#endif // __GNUG__
 
 WindowConfiguration::WindowConfiguration ()
 {
@@ -2456,7 +2547,9 @@ WindowConfiguration::~WindowConfiguration ()
   assert (xwindow_wp (selected_window ()->lwp));
   assert (xwindow_wp (selected_window ()->lwp) == selected_window ());
 
+#if !defined(__GNUG__)
   Window::compute_geometry (wc_size);
+#endif // __GNUG__
 
   app.active_frame.reserved = 0;
   for (wp = reserved; wp; wp = next)
@@ -2468,6 +2561,7 @@ WindowConfiguration::~WindowConfiguration ()
   delete [] wc_data;
 }
 
+#if !defined(__GNUG__)
 lisp
 Fpos_not_visible_in_window_p (lisp point, lisp window)
 {
@@ -3480,3 +3574,4 @@ Window::point2window_pos (point_t point, POINT &p) const
   p.y = min (max (0L, p.y), w_ch_max.cy);
   p.y *= app.text_font.cell ().cy;
 }
+#endif // __GNUG__

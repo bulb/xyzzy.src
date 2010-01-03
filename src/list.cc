@@ -1,6 +1,10 @@
 #include "ed.h"
 #include "sequence.h"
 
+#if defined(__GNUG__)
+# include <stdarg.h> // for va_start
+#endif // __GNUG__
+
 int
 xlist_length (lisp list)
 {

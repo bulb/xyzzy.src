@@ -1,6 +1,7 @@
 #ifndef _EXCEPT_H_
 # define _EXCEPT_H_
 
+#if defined(_MSC_VER)
 class Win32Exception
 {
 public:
@@ -18,5 +19,6 @@ public:
 
 void __cdecl se_handler (u_int, EXCEPTION_POINTERS *);
 void cleanup_exception ();
+#endif // _MSC_VER
 
 #endif

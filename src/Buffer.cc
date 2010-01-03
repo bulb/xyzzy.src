@@ -1,8 +1,13 @@
 #include "ed.h"
 #include "syntaxinfo.h"
-#include "filer.h"
+#if !defined(__GNUG__)
+# include "filer.h"
+#endif // __GNUG__
 #include "binfo.h"
+
+#if !defined(__GNUG__)
 #include "buffer-bar.h"
+#endif // __GNUG__
 
 fixed_heap Chunk::c_heap (sizeof (Char) * TEXT_SIZE);
 fixed_heap Chunk::c_breaks_heap (BREAKS_SIZE);
@@ -20,8 +25,13 @@ int Buffer::b_default_kinsoku_extend_limit = 3;
 int Buffer::b_default_kinsoku_shorten_limit = 10;
 u_char Buffer::b_buffer_bar_modified_any;
 
+#if defined(_MSC_VER)
 fixed_heap ChunkHeap::a_heap (8192);
 fixed_heap textprop_heap::a_heap (4096);
+#else // __GNUG__
+template <> fixed_heap ChunkHeap::a_heap (8192);
+template <> fixed_heap textprop_heap::a_heap (4096);
+#endif // __GNUG__
 const u_char Chunk::c_breaks_mask[] = {1, 2, 4, 8, 16, 32, 64, 128};
 
 class enum_buffer
@@ -169,10 +179,12 @@ Buffer::Buffer (lisp name, lisp filename, lisp dirname, int temporary)
   b_make_backup = 0;
   b_buffer_name_modified = 1;
   b_buffer_bar_modified = 0;
+#if !defined (__GNUG__)
   b_buffer_bar_fg = COLORREF (-1);
   b_buffer_bar_bg = COLORREF (-1);
 
   b_hlock = INVALID_HANDLE_VALUE;
+#endif // __GNUG__
 
   b_narrow_depth = 0;
   b_last_narrow_depth = 0;
@@ -227,7 +239,9 @@ Buffer::Buffer (lisp name, lisp filename, lisp dirname, int temporary)
 
   b_linenum_mode = LNMODE_DEFAULT;
 
+#if !defined(__GNUG__)
   b_ime_mode = kbd_queue::IME_MODE_OFF;
+#endif // __GNUG__
 
   b_wflags = 0;
   b_wflags_mask = -1;
@@ -309,7 +323,9 @@ Buffer::erase ()
   b_done_auto_save = 0;
   b_make_backup = 0;
 
+#if !defined(__GNUG__)
   b_modtime.clear ();
+#endif // __GNUG__
 
   unlock_file ();
 
@@ -381,6 +397,7 @@ Buffer::~Buffer ()
       if (wc->wc_data[i].bufp == this)
         wc->wc_data[i].bufp = 0;
 
+#if !defined(__GNUG__)
   enum_buffer::deleted (this);
   buffer_bar::buffer_deleted (this);
 
@@ -394,6 +411,7 @@ Buffer::~Buffer ()
   delete_contents ();
   if (bufferp (lbp))
     xbuffer_bp (lbp) = 0;
+#endif // __GNUG__
 }
 
 void
@@ -551,7 +569,10 @@ Buffer::make_internal_buffer (const char *bufname)
   else
     bp = create_buffer (name, Qnil, Qnil);
 
+#if !defined(__GNUG__)
   bp->b_ime_mode = kbd_queue::IME_MODE_OFF;
+#endif // __GNUG__
+
   bp->set_local_variable (Vbuffer_read_only, Qnil);
   bp->set_local_variable (Vkept_undo_information, Qnil);
   bp->set_local_variable (Vneed_not_save, Qt);
@@ -645,7 +666,11 @@ Fget_next_buffer (lisp buffer, lisp prev, lisp tab_order, lisp linternal_p)
   if (buffer == Ktop)
     {
       if (tab_order_p)
+#if defined(_MSC_VER)
         bp = buffer_bar::get_top_buffer ();
+#else  // __GNUG__
+       ; ///@todo
+#endif // __GNUG__
       if (!bp)
         {
           bp = Buffer::b_blist;
@@ -655,13 +680,18 @@ Fget_next_buffer (lisp buffer, lisp prev, lisp tab_order, lisp linternal_p)
     }
   else if (buffer == Kbottom)
     {
+#if defined(_MSC_VER)
       if (tab_order_p)
         bp = buffer_bar::get_bottom_buffer ();
       if (!bp)
         bp = Buffer::b_blist->prev_buffer (internal_p);
+#else  // __GNUG__
+      ; ///@todo
+#endif // __GNUG__
     }
   else
     {
+#if defined(_MSC_VER)
       Buffer *obp = Buffer::coerce_to_buffer (buffer);
       bp = (tab_order_p
             ? (!prev || prev == Qnil
@@ -672,6 +702,9 @@ Fget_next_buffer (lisp buffer, lisp prev, lisp tab_order, lisp linternal_p)
         bp = (!prev || prev == Qnil
               ? obp->next_buffer (internal_p)
               : obp->prev_buffer (internal_p));
+#else // __GNUG__
+      ; ///@todo
+#endif // __GNUG__
     }
   return bp->lbp;
 }
@@ -886,8 +919,10 @@ Fdelete_buffer (lisp buffer)
   if (bp->run_hook_while_success (Vbefore_delete_buffer_hook, bp->lbp) == Qnil)
     return Qnil;
 
+#if !defined(__GNUG__) ///@todo
   if (buffer_has_process (bp))
     FEsimple_error (Ebuffer_has_subprocess);
+#endif // __GNUG__
 
   if (bp->run_hook_while_success (Vdelete_buffer_hook, bp->lbp) == Qnil)
     return Qnil;
@@ -1103,9 +1138,13 @@ Fbuffer_list (lisp keys)
 {
   if (find_keyword_bool (Kbuffer_bar_order, keys))
     {
+#if defined(_MSC_VER)
       lisp r = buffer_bar::list_buffers ();
       if (r)
         return r;
+#else // __GNUG__
+      ;
+#endif // __GNUG__
     }
 
   Buffer *bp = Buffer::b_blist;
@@ -1210,12 +1249,17 @@ call_hooks (lisp hook)
 int
 Buffer::query_kill_xyzzy ()
 {
+#if !defined(__GNUG__)
   if (app.kbdq.disablep ())
     return 0;
+#endif // __GNUG__
+
   if (!call_hooks (Vbefore_delete_buffer_hook))
     return 0;
+#if !defined(__GNUG__)
   if (!query_kill_subprocesses ())
     return 0;
+#endif // __GNUG__
   if (!call_hooks (Vdelete_buffer_hook))
     return 0;
 #if 0
@@ -1249,9 +1293,11 @@ Buffer::kill_xyzzy (int query)
 {
   if (query && !query_kill_xyzzy ())
     return 0;
+#if !defined(__GNUG__)
   Filer::close_mlfiler ();
   selected_buffer ()->safe_run_hook (Vkill_xyzzy_hook, 1);
   PostQuitMessage (0);
+#endif // __GNUG__
   return 1;
 }
 
@@ -1287,7 +1333,11 @@ Buffer::refresh_title_bar () const
       char buf[512 + 10];
       buffer_info binfo (0, this, 0, 0);
       *binfo.format (fmt, buf, buf + 512) = 0;
+#if defined(_MSC_VER)
       SetWindowText (app.toplev, buf);
+#else // __GNUG__
+      ; ///@todo
+#endif // __GNUG__
     }
   else
     {
@@ -1306,7 +1356,11 @@ Buffer::refresh_title_bar () const
       else
         store_title (x, stpcpy (stpcpy (b, TitleBarString), " - "), b + l);
 
+#if defined(_MSC_VER)
       SetWindowText (app.toplev, b);
+#else // __GNUG__
+      ; ///@todo
+#endif // __GNUG__
     }
   b_last_title_bar_buffer = 0; // 次回タイトルバーを強制的に再描画させる
 }
@@ -1337,6 +1391,7 @@ Frefresh_title_bar ()
   return Qt;
 }
 
+#if !defined(__GNUG__)
 void
 Buffer::change_colors (const XCOLORREF *cc)
 {
@@ -1366,14 +1421,20 @@ Buffer::change_colors (const XCOLORREF *cc)
     if (wp->w_bufp == this)
       wp->change_color ();
 }
+#endif // __GNUG__
 
 lisp
 Fset_buffer_colors (lisp lcolors, lisp lbuffer)
 {
   if (lcolors == Qnil)
+#if defined(_MSC_VER)
     Buffer::coerce_to_buffer (lbuffer)->change_colors (0);
+#else  // __GNUG__
+    ; ///@todo
+#endif // __GNUG__
   else
     {
+#if !defined(__GNUG__) ///@todo
       XCOLORREF cc[USER_DEFINABLE_COLORS];
       check_general_vector (lcolors);
       memcpy (cc, Window::default_xcolors, sizeof cc);
@@ -1381,10 +1442,12 @@ Fset_buffer_colors (lisp lcolors, lisp lbuffer)
       for (int i = 0; i < n; i++)
         cc[i] = fixnum_value (xvector_contents (lcolors) [i]);
       Buffer::coerce_to_buffer (lbuffer)->change_colors (cc);
+#endif // __GNUG__
     }
   return Qt;
 }
 
+#if !defined(__GNUG__)
 void
 change_local_colors (const XCOLORREF *cc, int dir, int subdir)
 {
@@ -1414,6 +1477,7 @@ change_local_colors (const XCOLORREF *cc, int dir, int subdir)
         }
     }
 }
+#endif // __GNUG__
 
 void
 Buffer::refresh_buffer () const
@@ -1887,8 +1951,10 @@ Buffer::change_ime_mode ()
   if (b_last_selected_buffer != this)
     {
       b_last_selected_buffer = this;
+#if !defined(__GNUG__)
       if (xsymbol_value (Vsave_buffer_ime_mode) != Qnil)
         app.kbdq.toggle_ime (b_ime_mode);
+#endif // __GNUG__
     }
 }
 
@@ -1905,8 +1971,12 @@ Fupdate_mode_line (lisp lbuffer)
 lisp
 Fbuffer_ime_mode (lisp buffer)
 {
+#if defined(_MSC_VER)
   return boole (Buffer::coerce_to_buffer (buffer)->b_ime_mode
                 == kbd_queue::IME_MODE_ON);
+#else  // __GNUG__
+  return Qnil; ///@todo
+#endif // __GNUG__
 }
 
 lisp
@@ -1914,6 +1984,7 @@ Fset_buffer_ime_mode (lisp f, lisp buffer)
 {
   Buffer *bp = Buffer::coerce_to_buffer (buffer);
   int omode = bp->b_ime_mode;
+#if !defined(__GNUG__)
   bp->b_ime_mode = (f == Qnil
                     ? kbd_queue::IME_MODE_OFF
                     : kbd_queue::IME_MODE_ON);
@@ -1921,6 +1992,7 @@ Fset_buffer_ime_mode (lisp f, lisp buffer)
       && bp == selected_buffer ()
       && xsymbol_value (Vsave_buffer_ime_mode) != Qnil)
     app.kbdq.toggle_ime (bp->b_ime_mode);
+#endif // __GNUG__
   return Qt;
 }
 

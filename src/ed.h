@@ -2,13 +2,20 @@
 # define _ed_h_
 
 # include "version.h"
+#if !defined(__GNUG__)
 # include "sysdep.h"
 # include "xcolor.h"
+#endif // __GNUG__
 # include "lisp.h"
+#if !defined(__GNUG__)
 # include "vfs.h"
 # include "wm.h"
 # include "mousemsg.h"
+#endif // __GNUG__
 
+#if defined(__GNUG__)
+# include <errno.h>
+#endif // __GNUG__
 struct Window;
 struct Buffer;
 
@@ -138,6 +145,7 @@ check_regexp (lisp x)
   check_type (x, Tregexp, Qregexp);
 }
 
+#if defined(_MSC_VER)
 #define MENU_ID_RANGE_MIN 0
 #define MENU_ID_RANGE_MAX 1024
 #define TOOL_ID_RANGE_MIN 1024
@@ -228,6 +236,7 @@ xwin32_dde_handle_hconv (lisp x)
   assert (win32_dde_handle_p (x));
   return ((lwin32_dde_handle *)x)->hconv;
 }
+#endif // _MSC_VER
 
 inline lwindow *
 make_window ()
@@ -262,6 +271,7 @@ make_regexp ()
   return p;
 }
 
+#if defined(_MSC_VER)
 inline lwin32_dde_handle *
 make_win32_dde_handle ()
 {
@@ -269,23 +279,33 @@ make_win32_dde_handle ()
   p->hconv = 0;
   return p;
 }
+#endif // _MSC_VER
 
 struct Window;
 struct Buffer;
 
+#if !defined(__GNUG__)
 # include "process.h"
 # include "dll.h"
+#endif // __GNUG__
 # include "chunk.h"
+#if !defined(__GNUG__)
 # include "oledata.h"
 # include "waitobj.h"
+#endif // __GNUG__#
+
 # include "ces.h"
+
+#if !defined(__GNUG__)
 # include "kbd.h"
 # include "mouse.h"
 # include "statarea.h"
 # include "timer.h"
 # include "font.h"
 # include "utimer.h"
+#endif // __GNUG__
 
+#if !defined(__GNUG__) ///<TODO
 class StatusWindow
 {
 public:
@@ -315,8 +335,23 @@ public:
   void set (HWND);
   int paint (const DRAWITEMSTRUCT *);
 };
+#endif // __GNUG__
 
 class FKWin;
+
+#if defined(__GNUG__) ///@todo
+typedef struct {
+  u_long cx;
+  u_long cy;
+} SIZE;
+
+typedef struct {
+  long left;
+  long top;
+  long right;
+  long bottom;
+} RECT;
+#endif // __GNUG__
 
 struct Frame
 {
@@ -326,9 +361,12 @@ struct Frame
   Window *deleted;
   int windows_moved;
 
+#if !defined(__GNUG__) ///<TODO
   HWND hwnd;
+#endif // __GNUG__
   SIZE size;
 
+#if !defined(__GNUG__) ///<TODO
   int has_focus;
   HWND has_caret;
   HWND has_caret_last;
@@ -339,18 +377,23 @@ struct Frame
   COLORREF last_caret_color;
 
   FKWin *fnkey;
+#endif // __GNUG__
 };
 
 struct ModelineParam
 {
+#if !defined(__GNUG__) ///<TODO
   HFONT m_hfont;
+#endif // __GNUG__
   int m_height;
   int m_exlead;
   int m_exts[22];
 
   ModelineParam ();
   ~ModelineParam ();
+#if !defined(__GNUG__) ///<TODO
   void init (HFONT);
+#endif // __GNUG__
 };
 
 struct Region
@@ -364,6 +407,7 @@ class Application
 public:
   Application ();
   ~Application ();
+#if !defined(__GNUG__) ///<TODO
 
   static const char ToplevelClassName[];
   static const char FrameClassName[];
@@ -379,8 +423,9 @@ public:
   kbd_queue kbdq;
   mouse_state mouse;
   ime_comp_queue ime_compq;
-
+#endif // __GNUG__
   Frame active_frame;
+#if !defined(__GNUG__)
   FontSet text_font;
   ModelineParam modeline_param;
   StatusWindow status_window;
@@ -390,9 +435,11 @@ public:
 
   status_area stat_area;
 
+#endif // __GNUG__
   int default_tab_columns;
   int auto_save_count;
 
+#if !defined(__GNUG__)
   int toplevel_is_active;
   int ime_composition;
   int ime_open_mode;
@@ -428,9 +475,13 @@ public:
   int minibuffer_prompt_column;
 
   utimer user_timer;
-
+#endif // __GNUG__
+  
   void *initial_stack;
+  
+#if !defined(__GNUG__)
   int in_gc;
+#endif // __GNUG__
 };
 
 extern Application app;
@@ -445,7 +496,9 @@ public:
       if (!q_save)
         {
           q_enable = 1;
+#if defined(_MSC_VER)
           PostThreadMessage (app.quit_thread_id, WM_PRIVATE_REGISTER_HOTKEY, 0, 0);
+#endif // _MSC_VER
         }
     }
   ~enable_quit () {if (!q_save) disable ();}
@@ -453,18 +506,23 @@ public:
     {
       if (q_enable)
         {
+#if defined(_MSC_VER)
           PostThreadMessage (app.quit_thread_id, WM_PRIVATE_UNREGISTER_HOTKEY, 0, 0);
+#endif // _MSC_VER
           q_enable = 0;
         }
     }
 };
 
+# include "syntax.h"  ///FIXME. for syntax_code
 # include "Buffer.h"
 # include "Window.h"
-# include "syntax.h"
+#if !defined(__GNUG__)
 # include "msgbox.h"
 # include "resource.h"
-
+#else // __GNUG__
+# include "process.h" ///FIXME. for eol_code, Region
+#endif // __GNUG__
 inline Window *
 selected_window ()
 {
@@ -478,12 +536,14 @@ selected_buffer ()
   return selected_window ()->w_bufp;
 }
 
+#if !defined(__GNUG__)
 inline HWND
 get_active_window ()
 {
   HWND hwnd = GetActiveWindow ();
   return hwnd ? hwnd : app.toplev;
 }
+#endif // __GNUG__
 
 inline
 lmarker::~lmarker ()
@@ -558,13 +618,19 @@ class save_cursor_depth
 {
   int odepth;
 public:
+#if defined(_MSC_VER)
   save_cursor_depth () : odepth (app.wait_cursor_depth) {}
+#else // __GNUG__
+  save_cursor_depth () {} ///<@todo
+#endif // __GNUG__
   ~save_cursor_depth ()
     {
+#if !defined(__GNUG__) ///@todo
       if (!odepth)
         end_wait_cursor (1);
       else
         app.wait_cursor_depth = odepth;
+#endif // __GNUG__
     }
 };
 

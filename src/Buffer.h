@@ -35,7 +35,9 @@ enum wcolor_index
 struct wcolor_index_name
 {
   const char *name;
+#if !defined(__GNUG__)
   COLORREF rgb;
+#endif // __GNUG__
   const char *display_name;
 };
 
@@ -224,6 +226,7 @@ class save_excursion;
 class save_restriction;
 enum syntax_code;
 
+#if !defined(__GNUG__)
 class FileTime: public _FILETIME
 {
 public:
@@ -292,6 +295,7 @@ FileTime::operator = (const _FILETIME &s)
   dwHighDateTime = s.dwHighDateTime;
   return *this;
 }
+#endif // __GNUG__
 
 struct insertChars
 {
@@ -410,8 +414,10 @@ struct Buffer
       BUFFER_BAR_LAST_MODIFIED_FLAG = 8,
       BUFFER_BAR_MARK = 16
     };
+#if !defined(__GNUG__)
   COLORREF b_buffer_bar_fg;
   COLORREF b_buffer_bar_bg;
+#endif // __GNUG__
   static u_char b_buffer_bar_modified_any;
   u_char b_buffer_bar_modified;
   u_char b_truncated;
@@ -425,8 +431,10 @@ struct Buffer
   u_char b_make_backup;
   u_char b_buffer_name_modified;
 
+#if !defined(__GNUG__)
   FileTime b_modtime;
   HANDLE b_hlock;
+#endif // __GNUG__
 
   int b_narrow_depth;
   int b_last_narrow_depth;
@@ -469,7 +477,9 @@ struct Buffer
   save_excursion *b_excursion;
   save_restriction *b_restriction;
 
+#if !defined(__GNUG__)
   XCOLORREF b_colors[USER_DEFINABLE_COLORS];
+#endif // __GNUG__
   int b_colors_enable;
 
   int b_hjump_columns;
@@ -593,7 +603,9 @@ struct Buffer
   void adjust_deletion (const Point &, int);
   void overwrite_chars (Window *, const Char *, int);
 
+#if !defined(__GNUG__)
   void file_modtime (FileTime &ft);
+#endif // __GNUG__
   void update_modtime ();
   int verify_modtime ();
 
@@ -607,7 +619,9 @@ struct Buffer
   void save_insert_undo (UndoInfo *, point_t, int);
   int save_delete_undo (const Point &, int);
   int save_modify_undo (const Point &, int);
+#if !defined(__GNUG__)
   void save_modtime_undo (const FileTime &);
+#endif // __GNUG__
   void chain_undo (UndoInfo *);
   void clear_undo_info ();
   void undo_boundary ();
@@ -762,7 +776,9 @@ struct Buffer
   void set_frame_title (int);
   char *store_title (lisp, char *, char *) const;
 
+#if !defined(__GNUG__)
   void change_colors (const XCOLORREF *);
+#endif // __GNUG__
 
   long char_columns (Char, long) const;
 
@@ -856,7 +872,9 @@ Buffer::eobp (const Point &p) const
 inline void
 Buffer::update_modtime ()
 {
+#if !defined(__GNUG__)
   file_modtime (b_modtime);
+#endif // __GNUG__
 }
 
 inline int
@@ -874,7 +892,11 @@ Buffer::lock_file ()
 inline int
 Buffer::file_locked_p () const
 {
+#if defined(_MSC_VER)
   return b_hlock != INVALID_HANDLE_VALUE;
+#else
+  return 0; ///<TODO
+#endif // _MSC_VER
 }
 
 static inline long
@@ -925,7 +947,9 @@ struct ReadFileContext
   DWORD r_errcode;
   long r_nchars;
   long r_nlines;
+#if !defined(__GNUG__)
   FileTime r_modtime;
+#endif // __GNUG__
   Chunk *r_chunk;
   Chunk *r_tail;
   int r_cr;

@@ -138,7 +138,7 @@ import (lisp symbol, lisp package)
 }
 
 static void
-export (lisp symbol, lisp package)
+_export (lisp symbol, lisp package)
 {
   check_symbol (symbol);
   lisp name = xsymbol_name (symbol);
@@ -536,10 +536,10 @@ Fexport (lisp symbols, lisp package)
 {
   package = coerce_to_package (package);
   if (symbols != Qnil && !consp (symbols))
-    export (symbols, package);
+    _export (symbols, package);
   else
     for (; consp (symbols); symbols = xcdr (symbols))
-      export (xcar (symbols), package);
+      _export (xcar (symbols), package);
   multiple_value::clear ();
   return Qt;
 }

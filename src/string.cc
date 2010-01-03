@@ -8,8 +8,12 @@ update_column (int column, Char c)
   if (c == '\n')
     column = 0;
   else if (c == '\t')
+#if !defined(__GNUG__)
     column = ((column + app.default_tab_columns)
               / app.default_tab_columns * app.default_tab_columns);
+#else
+    column = 0; ///<TODO
+#endif // __GNUG__
   else
     column += char_width (c);
   return column;
@@ -1007,6 +1011,7 @@ Fparse_integer (lisp string, lisp keys)
   return result;
 }
 
+#if defined(_MSC_VER)
 int WINAPI
 abbreviate_string (HDC hdc, char *buf, int maxpxl, int is_pathname)
 {
@@ -1114,10 +1119,12 @@ done:
   strcpy (le + 3, rb);
   return 1;
 }
+#endif // _MSC_VER
 
 static int
 abbrev_string (char *buf, int maxl, int pathname_p)
 {
+#if defined(_MSC_VER)
   HDC hdc (GetDC (0));
   HGDIOBJ of (SelectObject (hdc, sysdep.ui_font ()));
   TEXTMETRIC tm;
@@ -1126,6 +1133,9 @@ abbrev_string (char *buf, int maxl, int pathname_p)
   int r = abbreviate_string (hdc, buf, maxpxl, pathname_p);
   SelectObject (hdc, of);
   ReleaseDC (0, hdc);
+#else
+  int r = 0; ///<TODO
+#endif // _MSC_VER
   return r;
 }
 

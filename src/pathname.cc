@@ -1,19 +1,30 @@
 #include "ed.h"
 #include "pathname.h"
-#include "dyn-handle.h"
-#include "environ.h"
-#include <io.h>
+#if !defined(__GNUG__)
+#  include "dyn-handle.h"
+#  include "environ.h"
+#  include <io.h>
+#endif // __GNUG__
 #include <math.h>
-#include "except.h"
-#include "mman.h"
-#include <winioctl.h>
-#include "thread.h"
+#if !defined(__GNUG__)
+#  include "except.h"
+#  include "mman.h"
+#  include <winioctl.h>
+#  include "thread.h"
+#endif // __GNUG__
+#if defined(__GNUG__)
+#  include <fcntl.h>
+#  include "xlist.h" // for xstrlist.h
+#endif // __GNUG__
 #include "xstrlist.h"
+#if !defined(__GNUG__)
 #include "vwin32.h"
+#endif // __GNUG__
 
 static lisp
 file_error_condition (int e)
 {
+#if defined(_MSC_VER)
   switch (e)
     {
     case ERROR_FILE_NOT_FOUND:
@@ -62,6 +73,9 @@ file_error_condition (int e)
     default:
       return QCfile_error;
     }
+#else // __GNUG__
+  return Qnil;
+#endif // __GNUG__
 }
 
 void
@@ -119,6 +133,7 @@ static char devdirs[26][PATH_MAX];
 int
 set_device_dir (const char *path, int f)
 {
+#if !defined(__GNUG__)
   if (!WINFS::SetCurrentDirectory (path))
     return 0;
   if (f || xsymbol_value (Vauto_update_per_device_directory) != Qnil)
@@ -128,6 +143,7 @@ set_device_dir (const char *path, int f)
           && alpha_char_p (*curdir & 255) && curdir[1] == ':')
         strcpy (devdirs[_char_downcase (*curdir) - 'a'], curdir + 2);
     }
+#endif // __GNUG__
   return 1;
 }
 
@@ -146,11 +162,13 @@ get_device_dir (Char *b, const Char *p, int l)
 
   char buf[PATH_MAX + 1], path[PATH_MAX + 1], *tem;
   w2s (buf, p, l);
+#if !defined(__GNUG__)
   if (WINFS::GetFullPathName (buf, sizeof path, path, &tem))
     {
       Char *be = s2w (b, path);
       return copy_Chars (b, skip_device_or_host (b, be), be);
     }
+#endif // __GNUG__
   return b;
 }
 
@@ -253,7 +271,11 @@ parse_namestring (pathbuf_t buf, const Char *name, int nl, const Char *defalt, i
       if (!abs)
         {
           int l = path.deve - path.dev;
+#if defined(_MSC_VER)
           if (tem.deve - tem.dev == l && !memicmp (path.dev, tem.dev, sizeof *path.dev * l))
+#else // __GNUG__
+	  if (tem.deve - tem.dev == l && !memcmp (path.dev, tem.dev, sizeof *path.dev * l))
+#endif // __GNUG__
             b = copy_Chars (b, tem.trail, tem.traile);
           else
             b = get_device_dir (b, path.dev, l);
@@ -603,7 +625,11 @@ file_attributes (lisp pathname)
 {
   char path[PATH_MAX + 1];
   pathname2cstr (pathname, path);
+#if !defined(__GNUG__)
   return WINFS::GetFileAttributes (path);
+#else // __GNUG__
+  return 0; ///@todo
+#endif // __GNUG__
 }
 
 lisp
@@ -616,17 +642,25 @@ Ffile_exist_p (lisp file)
 lisp
 Ffile_readable_p (lisp file)
 {
+#if !defined(__GNUG__)
   int x = file_attributes (file);
   return boole (!(x & FILE_ATTRIBUTE_DIRECTORY));
+#else // __GNUG__
+  return Qnil; ///@todo
+#endif // __GNUG__
 }
 
 lisp
 Ffile_writable_p (lisp file)
 {
   int x = file_attributes (file);
+#if !defined(__GNUG__)
   return boole (!(x & (FILE_ATTRIBUTE_DIRECTORY
                        | FILE_ATTRIBUTE_SYSTEM
                        | FILE_ATTRIBUTE_READONLY)));
+#else // __GNUG__
+  return Qnil;
+#endif // __GNUG__
 }
 
 lisp
@@ -639,19 +673,28 @@ Ffile_executable_p (lisp file)
 lisp
 Ffile_directory_p (lisp file)
 {
+#if defined(_MSC_VER)
   int x = file_attributes (file);
   return boole (x != -1 && x & FILE_ATTRIBUTE_DIRECTORY);
+#else
+  return Qnil; ///<@todo
+#endif // _MSC_VER
+
 }
 
 int
 special_file_p (const char *path)
 {
+#if !defined(__GNUG__)
   HANDLE h = WINFS::CreateFile (path, GENERIC_READ, 0, 0, OPEN_EXISTING, 0, 0);
   if (h == INVALID_HANDLE_VALUE)
     return 0;
   int dev = GetFileType (h) != FILE_TYPE_DISK;
   CloseHandle (h);
   return dev;
+#else // __GNUG__
+  return 0; ///@todo
+#endif // __GNUG__
 }
 
 lisp
@@ -668,7 +711,11 @@ Fvalid_path_p (lisp file)
   int x = file_attributes (file);
   if (x != -1)
     return Qt;
+#if !defined(__GNUG__)
   return boole (GetLastError () == ERROR_FILE_NOT_FOUND);
+#else // __GNUG__
+  return Qnil; ///@todo
+#endif // __GNUG__
 }
 
 lisp
@@ -677,9 +724,11 @@ Fcheck_valid_pathname (lisp path)
   int x = file_attributes (path);
   if (x != -1)
     return Qt;
+#if !defined(__GNUG__)
   int e = GetLastError ();
   if (e != ERROR_FILE_NOT_FOUND)
     file_error (e, path);
+#endif // __GNUG__
   return Qnil;
 }
 
@@ -688,8 +737,10 @@ Ftruename (lisp pathname)
 {
   char path[PATH_MAX + 1], truename[PATH_MAX + 1];
   pathname2cstr (pathname, path);
+#if !defined(__GNUG__)
   if (WINFS::GetFileAttributes (path) == -1)
     file_error (GetLastError (), pathname);
+#endif // __GNUG__
 
   map_sl_to_backsl (path);
   char *sl = 0;
@@ -715,6 +766,7 @@ Ftruename (lisp pathname)
           char *p = jindex (sl, '\\');
           if (p)
             *p = 0;
+#if !defined(__GNUG__)
           WIN32_FIND_DATA fd;
           if (WINFS::get_file_data (path, fd))
             t = stpcpy (t, fd.cFileName);
@@ -727,6 +779,7 @@ Ftruename (lisp pathname)
           *p = '\\';
           sl = p + 1;
           *t++ = '\\';
+#endif // __GNUG__
         }
       *t = 0;
     }
@@ -778,8 +831,12 @@ Ffile_system_supports_long_file_name_p (lisp path)
   char cbuf[PATH_MAX + 1];
   w2s (cbuf, buf, t - buf);
 
+#if !defined(__GNUG__)
   DWORD maxl, flags;
   return boole (WINFS::GetVolumeInformation (cbuf, 0, 0, 0, &maxl, &flags, 0, 0) && maxl > 12);
+#else
+  return Qnil;
+#endif // __GNUG__
 }
 
 lisp
@@ -788,7 +845,11 @@ Fpath_equal (lisp lpath1, lisp lpath2)
   char path1[PATH_MAX + 1], path2[PATH_MAX + 1];
   pathname2cstr (lpath1, path1);
   pathname2cstr (lpath2, path2);
+#if !defined(__GNUG__) ///@todo same_file_p
   return boole (same_file_p (path1, path2));
+#else
+  return Qnil;
+#endif // __GNUG__
 }
 
 static int
@@ -804,7 +865,11 @@ sub_dirp_by_name (const char *dir, const char *parent)
     pl--;
   if (dl < pl)
     return 0;
+#if defined(_MSC_VER)
   if (_memicmp (dir, parent, pl))
+#else  // __GNUG__
+  if (memcmp(dir, parent, pl))
+#endif // __GNUG__
     return 0;
   return !dir[pl] || dir[pl] == '/';
 }
@@ -812,6 +877,7 @@ sub_dirp_by_name (const char *dir, const char *parent)
 int
 sub_directory_p (char *dir, const char *parent)
 {
+#if defined(_MSC_VER)
   if (sub_dirp_by_name (dir, parent))
     {
       DWORD a = WINFS::GetFileAttributes (dir);
@@ -863,6 +929,9 @@ sub_directory_p (char *dir, const char *parent)
       if (!find_last_slash (dir))
         return 1;
     }
+#else // __GNUG__
+  return 1; ///@todo
+#endif // __GNUG__
 }
 
 lisp
@@ -927,14 +996,21 @@ Ffind_load_path (lisp filename)
             if (l && path[l - 1] != SEPCHAR)
               path[l++] = SEPCHAR;
             strcpy (stpcpy (path + l, file), *e);
+#if defined(_MSC_VER)
             DWORD a = WINFS::GetFileAttributes (path);
             if (a != DWORD (-1) && !(a & FILE_ATTRIBUTE_DIRECTORY))
               return make_string (path);
+#else // __GNUG__
+	    int a = open (path, O_EXCL);
+	    if (a != -1)
+	      return make_string (path);
+#endif // __GNUG__
           }
       }
   return Qnil;
 }
 
+#if !defined(__GNUG__)
 void
 FileTime::file_modtime (lisp filename, int dir_ok)
 {
@@ -950,6 +1026,7 @@ FileTime::file_modtime (lisp filename, int dir_ok)
       dwHighDateTime = fd.ftLastWriteTime.dwHighDateTime;
     }
 }
+#endif // __GNUG__
 
 lisp
 Fcwd ()
@@ -962,6 +1039,7 @@ Fmake_temp_file_name (lisp lprefix, lisp lsuffix, lisp dir, lisp dirp)
 {
   char temp[PATH_MAX + 1], prefix[32], suffix[32];
 
+#if !defined(__GNUG__) ///@todo
   if (lprefix == Qnil)
     lprefix = 0;
   if (lprefix)
@@ -999,12 +1077,14 @@ Fmake_temp_file_name (lisp lprefix, lisp lsuffix, lisp dir, lisp dirp)
                             0, dirp && dirp != Qnil))
     file_error (Ecannot_make_temp_file_name);
   map_backsl_to_sl (temp);
+#endif // __GNUG__
   return make_string (temp);
 }
 
 lisp
 Ffile_write_time (lisp file)
 {
+#if defined(_MSC_VER)
   FileTime t (file, 1);
   if (t.voidp ())
     return Qnil;
@@ -1016,11 +1096,16 @@ Ffile_write_time (lisp file)
   return decoded_time_to_universal_time (st.wYear, st.wMonth, st.wDay,
                                          st.wHour, st.wMinute, st.wSecond, 0);
 #endif
+
+#else // __GNUG__
+  return Qnil; ///@todo
+#endif // __GNUG__
 }
 
 lisp
 Fset_file_write_time (lisp lpath, lisp lutc)
 {
+#if defined(_MSC_VER)
   char path[PATH_MAX + 1];
   pathname2cstr (lpath, path);
   decoded_time dt;
@@ -1042,18 +1127,25 @@ Fset_file_write_time (lisp lpath, lisp lutc)
                                    FILE_FLAG_BACKUP_SEMANTICS, 0));
   if (!w.valid () || !SetFileTime (w, 0, 0, &ft))
     file_error (GetLastError (), lpath);
+#else // __GNUG__
+  ; ///@todo
+#endif // __GNUG__
   return Qt;
 }
 
 lisp
 Ffile_newer_than_file_p (lisp file1, lisp file2)
 {
+#if defined(_MSC_VER)
   FileTime t1 (file1, 1), t2 (file2, 1);
   if (t1.voidp ())
     return Qnil;
   if (t2.voidp ())
     return Qt;
   return boole (t1 > t2);
+#else // __GNUG__
+  return Qnil;
+#endif // __GNUG__
 }
 
 static lisp
@@ -1081,6 +1173,7 @@ access_denied_option (lisp keys)
   return x;
 }
 
+#if !defined(__GNUG__)
 static DWORD
 solve_access_denied (lisp access_denied, const char *path, lisp lpath)
 {
@@ -1105,10 +1198,12 @@ solve_access_denied (lisp access_denied, const char *path, lisp lpath)
     file_error (ERROR_ACCESS_DENIED, lpath);
   return 0; // not reached
 }
+#endif // __GNUG__
 
 lisp
 Fdelete_file (lisp name, lisp keys)
 {
+#if defined(_MSC_VER)
   char buf[PATH_MAX + 10];
   pathname2cstr (name, buf);
   lisp not_exist = exist_option (Kif_does_not_exist, keys);
@@ -1155,9 +1250,13 @@ Fdelete_file (lisp name, lisp keys)
           file_error (e, name);
         }
     }
+#else // __GNUG__
+  ; ///@todo
+#endif // __GNUG__
   return Qt;
 }
 
+#if !defined(__GNUG__) ///@todo check_kanji2
 static int
 copyn (char *d, const char *s, int n, int l)
 {
@@ -1167,7 +1266,9 @@ copyn (char *d, const char *s, int n, int l)
   d[l] = 0;
   return l;
 }
+#endif // __GNUG__
 
+#if !defined(__GNUG__)
 static void
 rename_short_name (const char *fpath, const char *tname, const char *longname)
 {
@@ -1211,10 +1312,12 @@ rename_short_name (const char *fpath, const char *tname, const char *longname)
           MB_OK | MB_ICONEXCLAMATION,
           xsymbol_value (Vbeep_on_error) != Qnil);
 }
+#endif // __GNUG__
 
 static void
 check_short_names (const char *from_path, const char *to_path)
 {
+#if !defined(__GNUG__)
   if (xsymbol_value (Vrename_alternate_file_name) == Qnil)
     return;
 
@@ -1245,6 +1348,7 @@ check_short_names (const char *from_path, const char *to_path)
     return;
 
   rename_short_name (to_path, st + 1, to_fd.cFileName);
+#endif // __GNUG__
 }
 
 enum
@@ -1255,6 +1359,7 @@ enum
   OFW_BAD
 };
 
+#if !defined(__GNUG__)
 class safe_write_handle: public dyn_handle
 {
   int sw_complete;
@@ -1462,6 +1567,7 @@ Fcopy_file (lisp from_name, lisp to_name, lisp keys)
 
   return Qt;
 }
+#endif // __GNUG__
 
 lisp
 Frename_file (lisp from_name, lisp to_name, lisp keys)
@@ -1482,6 +1588,7 @@ Frename_file (lisp from_name, lisp to_name, lisp keys)
 
   lisp access_denied = access_denied_option (keys);
 
+#if !defined(__GNUG__)
   while (1)
     {
       if (WINFS::MoveFile (fromf, tof))
@@ -1542,8 +1649,10 @@ Frename_file (lisp from_name, lisp to_name, lisp keys)
           }
         }
     }
+#endif // __GNUG__
 }
 
+#if !defined(__GNUG__)
 static int
 mkdirhier (char *path, int exists_ok)
 {
@@ -1572,6 +1681,7 @@ mkdirhier (char *path, int exists_ok)
   DWORD a = WINFS::GetFileAttributes (path);
   return a != -1 && a & FILE_ATTRIBUTE_DIRECTORY;
 }
+#endif // __GNUG__
 
 lisp
 Fcreate_directory (lisp dirname, lisp keys)
@@ -1579,6 +1689,7 @@ Fcreate_directory (lisp dirname, lisp keys)
   char name[PATH_MAX + 1];
   pathname2cstr (dirname, name);
   lisp if_exists = exist_option (Kif_exists, keys);
+#if !defined(__GNUG__)
   if (!mkdirhier (name, if_exists == Kskip))
     {
       int e = GetLastError ();
@@ -1586,6 +1697,7 @@ Fcreate_directory (lisp dirname, lisp keys)
         e = ERROR_FILE_EXISTS;
       file_error (e, dirname);
     }
+#endif // __GNUG__
   return Qt;
 }
 
@@ -1596,6 +1708,7 @@ Fdelete_directory (lisp dirname, lisp keys)
   pathname2cstr (dirname, name);
   lisp not_exist = exist_option (Kif_does_not_exist, keys);
   lisp access_denied = access_denied_option (keys);
+#if !defined(__GNUG__)
   if (!WINFS::RemoveDirectory (name))
     {
       int e = GetLastError ();
@@ -1613,6 +1726,7 @@ Fdelete_directory (lisp dirname, lisp keys)
         return Qnil;
       file_error (e, dirname);
     }
+#endif // __GNUG__
   return Qt;
 }
 
@@ -1647,6 +1761,7 @@ Fmap_backslash_to_slash (lisp path)
 static void
 wnet_error ()
 {
+#if !defined(__GNUG__)
   DWORD e = GetLastError ();
   if (e == ERROR_SUCCESS)
     return;
@@ -1657,13 +1772,16 @@ wnet_error ()
   *n = 0, *d = 0;
   WNetGetLastError (&e, d, sizeof d, n, sizeof n);
   FEnetwork_error (make_string (n), make_string (d));
+#endif // __GNUG__
 }
 
 lisp
 Fnetwork_connect_dialog ()
 {
+#if !defined(__GNUG__)
   if (WNetConnectionDialog (get_active_window (), RESOURCETYPE_DISK) == NO_ERROR)
     return Qt;
+#endif // __GNUG__
   wnet_error ();
   return Qnil;
 }
@@ -1671,8 +1789,10 @@ Fnetwork_connect_dialog ()
 lisp
 Fnetwork_disconnect_dialog ()
 {
+#if !defined(__GNUG__)
   if (WNetDisconnectDialog (get_active_window (), RESOURCETYPE_DISK) == NO_ERROR)
     return Qt;
+#endif // __GNUG__
   wnet_error ();
   return Qnil;
 }
@@ -1680,12 +1800,16 @@ Fnetwork_disconnect_dialog ()
 lisp
 Fget_file_attributes (lisp lpath)
 {
+#if defined(_MSC_VER)
   char path[PATH_MAX + 1];
   pathname2cstr (lpath, path);
   DWORD atr = WINFS::GetFileAttributes (path);
   if (atr == -1)
     file_error (GetLastError (), lpath);
   return make_fixnum (atr);
+#else // __GNUG__
+  return Qnil;
+#endif // __GNUG__
 }
 
 #define VALID_FILE_ATTRIBUTES \
@@ -1700,9 +1824,11 @@ Fset_file_attributes (lisp lpath, lisp latr)
 {
   char path[PATH_MAX + 1];
   pathname2cstr (lpath, path);
+#if !defined(__GNUG__)
   DWORD atr = fixnum_value (latr) & VALID_FILE_ATTRIBUTES;
   if (!WINFS::SetFileAttributes (path, atr))
     file_error (GetLastError (), lpath);
+#endif // __GNUG__
   return Qt;
 }
 
@@ -1711,6 +1837,7 @@ Fmodify_file_attributes (lisp lpath, lisp lon, lisp loff)
 {
   char path[PATH_MAX + 1];
   pathname2cstr (lpath, path);
+#if !defined(__GNUG__)
   DWORD on = fixnum_value (lon) & VALID_FILE_ATTRIBUTES;
   DWORD off = ((loff && loff != Qnil)
                ? (fixnum_value (loff) & VALID_FILE_ATTRIBUTES) : 0);
@@ -1719,9 +1846,11 @@ Fmodify_file_attributes (lisp lpath, lisp lon, lisp loff)
     file_error (GetLastError (), lpath);
   if (!WINFS::SetFileAttributes (path, (atr & ~off) | on))
     file_error (GetLastError (), lpath);
+#endif // __GNUG__
   return Qt;
 }
 
+#if !defined(__GNUG__)
 int
 strict_get_file_data (const char *path, WIN32_FIND_DATA &fd)
 {
@@ -1741,12 +1870,14 @@ strict_get_file_data (const char *path, WIN32_FIND_DATA &fd)
     }
   return WINFS::get_file_data (path, fd);
 }
+#endif // __GNUG__
 
 lisp
 Ffile_length (lisp lpath)
 {
   char path[PATH_MAX + 1];
   pathname2cstr (lpath, path);
+#if defined(_MSC_VER)
   WIN32_FIND_DATA fd;
   if (!strict_get_file_data (path, fd))
     return Qnil;
@@ -1754,6 +1885,9 @@ Ffile_length (lisp lpath)
   i.hi = fd.nFileSizeHigh;
   i.lo = fd.nFileSizeLow;
   return make_integer (i);
+#else // __GNUG__
+  return Qnil;
+#endif // __GNUG__
 }
 
 struct gdu
@@ -1766,6 +1900,7 @@ struct gdu
   int ndirs;
 };
 
+#if !defined(__GNUG__)
 static void
 get_disk_usage (char *path, gdu *du)
 {
@@ -1809,12 +1944,14 @@ get_disk_usage (char *path, gdu *du)
       while (WINFS::FindNextFile (h, &fd));
     }
 }
+#endif // __GNUG__
 
 lisp
 Fget_disk_usage (lisp dirname, lisp recursive)
 {
   char path[PATH_MAX * 2];
   pathname2cstr (dirname, path);
+#if defined(_MSC_VER)
   char *p = jrindex (path, '/');
   if (p && p[1])
     strcat (p, "/");
@@ -1855,6 +1992,9 @@ Fget_disk_usage (lisp dirname, lisp recursive)
   multiple_value::value (6) = make_fixnum (du.nfiles);
   multiple_value::count () = 7;
   return block;
+#else // __GNUG__
+  return Qnil;
+#endif // __GNUG__
 }
 
 lisp
@@ -1880,6 +2020,7 @@ Fformat_drive (lisp ldrive, lisp lquick)
         FErange_error (ldrive);
     }
 
+#if defined(_MSC_VER)
   HMODULE shell = GetModuleHandle ("shell32.dll");
   if (!shell)
     FEsimple_win32_error (GetLastError ());
@@ -1895,11 +2036,15 @@ Fformat_drive (lisp ldrive, lisp lquick)
   EnableWindow (hwnd, 1);
   SetFocus (focus);
   return boole (!f);
+#else // __GNUG__
+  return Qnil;
+#endif // __GNUG__
 }
 
 lisp
 Fcompare_file (lisp file1, lisp file2)
 {
+#if !defined(__GNUG__)
   char path1[PATH_MAX + 1], path2[PATH_MAX + 1];
   pathname2cstr (file1, path1);
   pathname2cstr (file2, path2);
@@ -1924,11 +2069,15 @@ Fcompare_file (lisp file1, lisp file2)
       throw e;
     }
   return r;
+#else // __GNUG__
+  return Qnil;
+#endif // __GNUG__
 }
 
 lisp
 Ffile_property (lisp lpath)
 {
+#if defined(_MSC_VER)
   char path[PATH_MAX + 1];
   pathname2cstr (lpath, path);
   map_sl_to_backsl (path);
@@ -1951,6 +2100,9 @@ Ffile_property (lisp lpath)
   if (!(*ex)(&sei))
     FEsimple_win32_error (GetLastError ());
   return Qt;
+#else // __GNUG__
+  return Qt;
+#endif // __GNUG__
 }
 
 #define LOCK_TIMEOUT 10000
@@ -1974,6 +2126,7 @@ Ffile_property (lisp lpath)
 static lisp
 eject_media_winnt (int drive, int type)
 {
+#if defined(_MSC_VER)
   int flags = 0;
   switch (type)
     {
@@ -2019,11 +2172,13 @@ eject_media_winnt (int drive, int type)
   if (!DeviceIoControl (h, IOCTL_STORAGE_EJECT_MEDIA, 0, 0, 0, 0, &nbytes, 0))
     file_error (GetLastError ());
 
+#endif // _MSC_VER
   return Qt;
 }
 
 static const u_char fat32_devcat[] = {0x48, 0x08};
 
+#if defined(_MSC_VER)
 static int
 win9x_lock_logical_volume (HANDLE hvwin32, int drive, int lock_level, int perm)
 {
@@ -2143,11 +2298,13 @@ eject_media_win9x (int drive)
     file_error (e);
   return Qt;
 }
+#endif // _MSC_VER
 
 lisp
 Feject_media (lisp ldrive)
 {
   check_char (ldrive);
+#if defined(_MSC_VER)
   if (!alpha_char_p (xchar_code (ldrive)))
     file_error (ERROR_INVALID_DRIVE);
 
@@ -2167,8 +2324,12 @@ Feject_media (lisp ldrive)
   return (sysdep.WinNTp ()
           ? eject_media_winnt (xchar_code (ldrive), type)
           : eject_media_win9x (xchar_code (ldrive)));
+#else // __GNUG__
+  return Qnil;
+#endif // __GNUG__
 }
 
+#if defined(_MSC_VER)
 class list_net_resources: public worker_thread
 {
 protected:
@@ -2269,15 +2430,21 @@ list_servers::list (NETRESOURCE *r0)
     }
   return 0;
 }
+#endif // _MSC_VER
 
 lisp
 Flist_servers (lisp comment_p)
 {
+#if defined(_MSC_VER)
   worker_thread_helper <list_servers> ls
     (new list_servers (comment_p && comment_p != Qnil));
   return ls->make_list ();
+#else // __GNUG__
+  return Qnil;
+#endif // __GNUG__
 }
 
+#if defined(_MSC_VER)
 class list_server_resources: public list_net_resources
 {
 protected:
@@ -2345,29 +2512,37 @@ list_server_resources::doit ()
           }
     }
 }
+#endif // _MSC_VER
 
 lisp
 Flist_server_resources (lisp lserver, lisp comment_p)
 {
+#if defined(_MSC_VER)
   worker_thread_helper <list_server_resources>
     ls (new list_server_resources (lserver, comment_p && comment_p != Qnil));
   return ls->make_list ();
+#else // __GNUG__
+  return Qnil;
+#endif // __GNUG__
 }
 
 lisp
 Fset_per_device_directory (lisp lpath)
 {
+#if defined(_MSC_VER)
   char path[PATH_MAX + 1];
   pathname2cstr (lpath, path);
   if (!set_device_dir (path, 1))
     file_error (GetLastError (), lpath);
   WINFS::SetCurrentDirectory (sysdep.curdir);
+#endif // _MSC_VER
   return Qt;
 }
 
 lisp
 Fget_short_path_name (lisp lpath)
 {
+#if defined(_MSC_VER)
   char path[PATH_MAX + 1], spath[PATH_MAX + 1];
   pathname2cstr (lpath, path);
   map_sl_to_backsl (path);
@@ -2382,8 +2557,12 @@ Fget_short_path_name (lisp lpath)
         strcat (sl, "/");
     }
   return make_string (spath);
+#else // __GNUG__
+  return Qnil;
+#endif // __GNUG__
 }
 
+#if defined(_MSC_VER)
 lisp
 make_file_info (const WIN32_FIND_DATA &fd)
 {
@@ -2400,16 +2579,21 @@ make_file_info (const WIN32_FIND_DATA &fd)
                      : Qnil),
                     0);
 }
+#endif // _MSC_VER
 
 lisp
 Fget_file_info (lisp lpath)
 {
+#if defined(_MSC_VER)
   char path[PATH_MAX + 1];
   pathname2cstr (lpath, path);
   WIN32_FIND_DATA fd;
   if (!strict_get_file_data (path, fd))
     file_error (GetLastError (), lpath);
   return make_file_info (fd);
+#else // __GNUG__
+  return Qnil;
+#endif // __GNUG__
 }
 
 char *

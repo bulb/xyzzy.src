@@ -318,8 +318,11 @@ lisp
 Ffunctionp (lisp object)
 {
   return boole (functionp (object) || closurep (object)
+#if defined(_MSC_VER)
                 || dll_function_p (object)
-                || c_callable_p (object));
+                || c_callable_p (object)
+#endif // _MSC_VER
+);
 }
 
 lisp
@@ -327,8 +330,11 @@ Fcompiled_function_p (lisp object)
 {
   return boole (functionp (object)
                 || (closurep (object) && compiled_function_p (object))
+#if defined(_MSC_VER)
                 || dll_function_p (object)
-                || c_callable_p (object));
+                || c_callable_p (object)
+#endif // _MSC_VER
+);
 }
 
 lisp
@@ -340,13 +346,21 @@ Fsi_builtin_function_p (lisp object)
 lisp
 Fsi_dll_function_p (lisp object)
 {
+#if defined(_MSC_VER)
   return boole (dll_function_p (object));
+#else
+  return Qnil;
+#endif // _MSC_VER
 }
 
 lisp
 Fsi_c_callable_p (lisp object)
 {
+#if defined(_MSC_VER)
   return boole (c_callable_p (object));
+#else
+  return Qnil;
+#endif // _MSC_VER
 }
 
 lisp
@@ -394,31 +408,51 @@ Fregexpp (lisp object)
 lisp
 Fprocessp (lisp object)
 {
+#if defined(_MSC_VER)
   return boole (processp (object));
+#else
+  return Qnil;
+#endif // _MSC_VER
 }
 
 lisp
 Fmenup (lisp object)
 {
+#if defined(_MSC_VER)
   return boole (win32_menu_p (object));
+#else
+  return Qnil;
+#endif // _MSC_VER
 }
 
 lisp
 Fdde_handle_p (lisp object)
 {
+#if defined(_MSC_VER)
   return boole (win32_dde_handle_p (object));
+#else
+  return Qnil;
+#endif // _MSC_VER
 }
 
 lisp
 Foledatap (lisp object)
 {
+#if defined(_MSC_VER)
   return boole (oledata_p (object));
+#else
+  return Qnil;
+#endif // _MSC_VER
 }
 
 lisp
 Fwait_object_p (lisp object)
 {
+#if defined(_MSC_VER)
   return boole (wait_object_p (object));
+#else
+  return Qnil;
+#endif // _MSC_VER
 }
 
 lisp

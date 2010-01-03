@@ -17,7 +17,11 @@ make_hash_table ()
 static inline u_int
 sxhashval (lisp object)
 {
+#if defined(_MSC_VER)
   return u_int (object) >> 3;
+#else // __GNUG__
+  return reinterpret_cast<u_int&>(object) >> 3;
+#endif // __GNUG__
 }
 
 /*GENERIC_FUNCTION:IMMEDIATE*/
@@ -186,7 +190,11 @@ static u_int
 sxhash (lisp object, hash_test_proc test)
 {
   if (test == Feq)
+#if defined(_MSC_VER)
     return u_int (object) >> 3;
+#else // __GNUG__
+    return reinterpret_cast<u_int&>(object) >> 3;
+#endif // __GNUG__
   if (test == Feql)
     return sxhash_eql (object);
   if (test == Fequal)

@@ -2,6 +2,12 @@
 #include <math.h>
 #include <float.h>
 
+#if defined(__GNUG__)
+#  ifndef _DBL_RADIX
+#  define _DBL_RADIX FLT_RADIX  ///@todo
+#  endif // _DBL_RADIX
+#endif // __GNUG__
+
 #define YET return 0;
 
 typedef double (__cdecl *FIX_FLONUM)(double);
@@ -160,8 +166,13 @@ truncate (double x)
   return x - fmod (x, 1.0);
 }
 
+#if defined(_MSC_VER)
 static double __cdecl
 round (double x)
+#else  // __GNUG__
+double 
+round (double x)
+#endif // __GNUG__
 {
   double q = truncate (x);
   if (q == x)
@@ -172,7 +183,7 @@ round (double x)
   return x < 0 ? q - 1 : q + 1;
 }
 
-#ifdef _M_IX86
+#if defined(_M_IX86) && defined(_MSC_VER)
 # pragma warning (disable:4035)
 #endif
 
@@ -180,7 +191,7 @@ round (double x)
 static long
 truncate (long *r, long x, long y)
 {
-#ifdef _M_IX86
+#if defined(_M_IX86) && defined(_MSC_VER)
   __asm
     {
       mov ecx, r;
@@ -195,7 +206,7 @@ truncate (long *r, long x, long y)
 #endif
 }
 
-#ifdef _M_IX86
+#if defined(_M_IX86) && defined(_MSC_VER)
 # pragma warning (default:4035)
 #endif
 
