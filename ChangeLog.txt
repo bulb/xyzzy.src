@@ -1,8 +1,12 @@
+2010-01-04  bulb <ttomise@gmail.com>
+	
+	* src/Makefile.gcc (distclean) : fix typo
+	
 2010-01-03  bulb  <ttomise@gmail.com>
 	
-	* src : fix dependencies for MacOSX buiilds.
+	* src : fix dependencies for MacOSX builds.
 	GCCとVCでコンパイル通るようにする(OSX上GCC/VC2005EEで確認)。
-	基本的方針として、未実装部分やWin32依存部分を_MSC_VERと__GNUG__
+	基本方針として、未実装部分やWin32依存部分を_MSC_VERと__GNUG__
 	で切り分ける
 	現状、OSXのGCCでコンパイルだけは通る。
 	

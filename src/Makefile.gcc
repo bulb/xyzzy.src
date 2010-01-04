@@ -166,7 +166,7 @@ clean:
 
 distclean:
 	$(RM) vars-decl.h
-	$(RM) fns-decs.h
+	$(RM) fns-decl.h
 	$(RM) symtable.cc
 	$(RM) chtab.cc
 	$(RM) num-arith.h
