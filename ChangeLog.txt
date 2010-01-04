@@ -1,6 +1,8 @@
 2010-01-04  bulb <ttomise@gmail.com>
 	
-	* src/Makefile.gcc (distclean) : fix typo
+	* src/Makefile.gcc : add rules for num-arith.d
+	
+	* src/Makefile.gcc (distclean) : fix typo.
 	
 2010-01-03  bulb  <ttomise@gmail.com>
 	

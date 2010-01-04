@@ -151,6 +151,7 @@ dep: msgdef.cc symtable.cc
 
 encoding.o: ibmext.h
 ucs2.o: ucs2tab.h char-width.h
+num-arith.h: dpp
 
 
 PHONY: all clean distclean
