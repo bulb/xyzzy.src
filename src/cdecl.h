@@ -82,7 +82,7 @@ typedef unsigned short u_short;
 typedef unsigned int u_int;
 typedef unsigned long u_long;
 
-#if defined(_MSC_VER)
+#if defined(_MSC_VER) || defined(__MINGW32__)
 typedef char int8_t;
 typedef short int16_t;
 typedef long int32_t;
@@ -156,7 +156,7 @@ bcmp (const void *p1, const void *p2, size_t size)
   return memcmp (p1, p2, size);
 }
 
-#if defined(_MSC_VER)
+#if defined(_MSC_VER) || defined(__MINGW32__)
 inline void *
 bzero (void *dst, size_t size)
 {

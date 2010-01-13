@@ -1,6 +1,6 @@
 #include "ed.h"
-#include <math.h>
 #include <float.h>
+#include <math.h>
 
 #if defined(__GNUG__)
 #  ifndef _DBL_RADIX

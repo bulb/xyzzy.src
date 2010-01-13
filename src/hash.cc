@@ -31,9 +31,15 @@ sxhash_imm (lisp object, hash_test_proc test)
   if (short_int_p (object))
     return xshort_int_value (object);
   if (charp (object))
+#if defined(_MSC_VER)
     return (test == Fequalp
             ? char_upcase (xchar_code (object))
             : xchar_code (object));
+#else // __GNUG__
+    return (test == hash_test_proc(Fequalp)
+            ? char_upcase (xchar_code (object))
+            : xchar_code (object));
+#endif // __GNUG__
   return sxhashval (object);
 }
 
@@ -42,7 +48,11 @@ static u_int
 sxhash_eql (lisp object)
 {
   if (immediatep (object))
+#if defined(_MSC_VER)
     return sxhash_imm (object, Feql);
+#else // __GNUG__
+    return sxhash_imm (object, hash_test_proc(Feql));
+#endif // __GNUG__
 
   switch (object_typeof (object))
     {
@@ -87,8 +97,11 @@ sxhash_equal (lisp object, int depth)
   while (depth++ < SXHASH_DEPTH)
     {
       if (immediatep (object))
+#if defined(_MSC_VER)
         return hashval + sxhash_imm (object, Fequal);
-
+#else // __GNUG__
+        return hashval + sxhash_imm (object, hash_test_proc(Fequal));
+#endif // __GNUG__
       switch (object_typeof (object))
         {
         case Tcons:
@@ -115,8 +128,11 @@ sxhash_equalp (lisp object, int depth)
   while (depth++ < SXHASH_DEPTH)
     {
       if (immediatep (object))
+#if defined(_MSC_VER)
         return hashval + sxhash_imm (object, Fequalp);
-
+#else // __GNUG__
+        return hashval + sxhash_imm (object, hash_test_proc(Fequalp));
+#endif // __GNUG__
       switch (object_typeof (object))
         {
         case Tcons:
@@ -189,17 +205,24 @@ sxhash_equalp (lisp object, int depth)
 static u_int
 sxhash (lisp object, hash_test_proc test)
 {
-  if (test == Feq)
 #if defined(_MSC_VER)
+  if (test == Feq)
     return u_int (object) >> 3;
-#else // __GNUG__
-    return reinterpret_cast<u_int&>(object) >> 3;
-#endif // __GNUG__
   if (test == Feql)
     return sxhash_eql (object);
   if (test == Fequal)
     return sxhash_equal (object, 0);
   return sxhash_equalp (object, 0);
+#else // __GNUG__
+  if (test == hash_test_proc(Feq))
+    return reinterpret_cast<u_int&>(object) >> 3;
+  if (test == hash_test_proc(Feql))
+    return sxhash_eql (object);
+  if (test == hash_test_proc(Fequal))
+    return sxhash_equal (object, 0);
+  return sxhash_equalp (object, 0);
+#endif // __GNUG__
+
 }
 
 static inline void
@@ -268,7 +291,11 @@ Fmake_hash_table (lisp keys)
   hash_test_proc test = 0;
   lisp ltest = find_keyword (Ktest, keys);
   if (ltest == Qnil)
+#if defined(_MSC_VER)
     test = Feql;
+#else // __GNUG__
+    test = hash_test_proc(Feql);
+#endif // __GNUG__
   else
     {
       if (symbolp (ltest))
@@ -276,8 +303,14 @@ Fmake_hash_table (lisp keys)
       if (functionp (ltest))
         {
           hash_test_proc proc = hash_test_proc (xfunction_fn (ltest));
+#if defined(_MSC_VER)
           if (proc == Feq || proc == Feql || proc == Fequal || proc == Fequalp)
             test = proc;
+#else // __GNUG__
+          if (proc == hash_test_proc(Feq) || proc == hash_test_proc(Feql)
+              || proc == hash_test_proc(Fequal) || proc == hash_test_proc(Fequalp))
+            test = proc;
+#endif // __GNUG__
         }
       if (!test)
         FEprogram_error (Einvalid_argument, xcons (Ktest, xcons (ltest, Qnil)));
@@ -495,12 +528,21 @@ Fhash_table_test (lisp hash_table)
 {
   check_hash_table (hash_table);
   hash_test_proc test = xhash_table_test_fn (hash_table);
+#if defined(_MSC_VER)
   if (test == Feq)
     return Seq;
   if (test == Feql)
     return Seql;
   if (test == Fequal)
     return Sequal;
+#else  // __GNUG__
+  if (test == hash_test_proc(Feq))
+    return Seq;
+  if (test == hash_test_proc(Feql))
+    return Seql;
+  if (test == hash_test_proc(Fequal))
+    return Sequal;
+#endif // __GNUG__
   return Sequalp;
 }
 

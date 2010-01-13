@@ -2,7 +2,9 @@
 
 	* src : fix gen-msg.
 	#endifあとをコメントアウト
-	
+
+	* src : add __MINGW32__ for MinGW32 GCC 4.4.1 (TDM-2).
+
 2010-01-04  bulb  <ttomise@gmail.com>
 
 	* src/Makefile.gcc : add rules for num-arith.d.

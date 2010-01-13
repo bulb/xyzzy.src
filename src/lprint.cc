@@ -3,8 +3,8 @@
 #if !defined(__GNUG__) ///<TODO
 # include "sock.h"
 #endif // __GNUG__
-#include <math.h>
 #include <float.h>
+#include <math.h>
 #include <stdarg.h>
 
 #if defined(__GNUG__)
