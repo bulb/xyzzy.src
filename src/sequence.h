@@ -23,7 +23,11 @@ key_proc::key_proc (lisp keys)
 inline lisp
 key_proc::call_keyfn (lisp x) const
 {
+#if defined(_MSC_VER)
   if (pkey == Fidentity)
+#else  // __GNUG__
+  if (pkey == lfunction_proc_1(Fidentity))
+#endif // __GNUG__ 
     return x;
   stack_trace trace (stack_trace::apply, lkey, x, 0);
   return pkey ? pkey (x) : funcall_1 (lkey, x);
