@@ -84,7 +84,7 @@ main (int argc, char **argv)
       printf ("};\n");
 
 #if defined(__GNUG__)
-      printf ("#endif _msgcode_h_\n");
+      printf ("#endif // _msgcode_h_\n");
 #endif // __GNUG__
     }
   else if (!strcmp (argv[1], "-c"))
