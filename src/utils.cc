@@ -47,6 +47,7 @@ xmemdup (const void *p, size_t size)
   return memcpy (xmalloc (size), p, size);
 }
 
+#if !defined(__linux__)
 char *
 stpcpy (char *d, const char *s)
 {
@@ -54,6 +55,7 @@ stpcpy (char *d, const char *s)
     ;
   return d - 1;
 }
+#endif // !__linux__
 
 char *
 stpncpy (char *d, const char *s, int n)
@@ -327,6 +329,7 @@ strequal (const char *cp, const Char *Cp, int l)
   return 1;
 }
 
+#if !defined(__linux__)
 int
 strcasecmp (const char *s1, const char *s2)
 {
@@ -354,6 +357,7 @@ strcasecmp (const char *s1, const char *s2)
         return 0;
     }
 }
+#endif // !__linux__
 
 void
 convert_backsl_with_sl (char *path, int f, int t)

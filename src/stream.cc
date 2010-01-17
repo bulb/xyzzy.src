@@ -8,7 +8,7 @@
 #include <fcntl.h>
 #include <math.h>
 
-#if defined(__GNUG__) && defined(__APPLE_CC__)
+#if defined(__GNUG__) && (defined(__APPLE_CC__) || defined(__linux__))
 # include <stdio.h>
 # include <unistd.h>
 #endif // __GNUG__
