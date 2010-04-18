@@ -417,7 +417,6 @@ glyph_rep::copy (const glyph_rep *src)
 void
 Window::init (int minibufp, int temporary)
 {
-#if !defined(__GNUG__)
   w_last_bufp = 0;
   w_disp_flags = WDF_WINDOW | WDF_MODELINE;
   w_last_mark_linenum = -1;
@@ -426,7 +425,9 @@ Window::init (int minibufp, int temporary)
   bzero (w_last_vars, sizeof w_last_vars);
   bzero (&w_clsize, sizeof w_clsize);
   bzero (&w_ech, sizeof w_ech);
+#if !defined(__GNUG__)
   w_colors = default_colors;
+#endif // __GNUG__
   w_inverse_mode_line = 0;
   w_ime_mode_line = 0;
 
@@ -448,6 +449,7 @@ Window::init (int minibufp, int temporary)
 
   lwp = make_window ();
 
+#if !defined(__GNUG__)
   if (!CreateWindowEx (sysdep.Win4p () ? WS_EX_CLIENTEDGE : 0,
                        Application::ClientClassName, "",
                        (WS_CHILD | WS_CLIPSIBLINGS | WS_VISIBLE
@@ -465,9 +467,10 @@ Window::init (int minibufp, int temporary)
       DestroyWindow (w_hwnd);
       FEstorage_error ();
     }
-
+#endif // __GNUG__
   xwindow_wp (lwp) = this;
 
+#if !defined(__GNUG__)
   w_vsinfo.nMin = 1;
   w_vsinfo.nMax = -1;
   w_vsinfo.nPage = UINT (-1);
@@ -818,10 +821,12 @@ Window::create_default_windows ()
 
   init_colors (cc, mlcc, fg, bg);
   set_bgmode ();
+#endif // __GNUG__
 
   Window *wp = new Window ();
   Window *mwp = new Window (1);
 
+#if !defined(__GNUG__)
   wp->w_order.left = 0;
   wp->w_order.top = 0;
   wp->w_order.right = 1;
@@ -834,10 +839,12 @@ Window::create_default_windows ()
   wp->w_next = mwp;
   mwp->w_prev = wp;
   mwp->w_next = 0;
+#endif // __GNUG__
 
   app.active_frame.windows = wp;
   app.active_frame.selected = wp;
 
+#if !defined(__GNUG__)
   SIZE osize = {0, 0};
   if (!IsIconic (app.toplev))
     {

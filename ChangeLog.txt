@@ -1,4 +1,7 @@
 2010-04-18  bulb  <ttomise@gmail.com>
+	* src : fix create_default_windows
+	Window初期化対応
+	
 	* src/Makefile.gcc : add option
 	arch optionの追加
 	
