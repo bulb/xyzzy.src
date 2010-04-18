@@ -1641,6 +1641,8 @@ static symbols ed[] =
   DEFUN3 (get-windows-directory, 0, 0, 0),
   DEFUN3 (get-system-directory, 0, 0, 0),
 #endif //__GNUG__
+
+#if defined(_MSC_VER)
   MAKE_SYMBOL2 (win32s),
   MAKE_SYMBOL2 (windows-95),
   MAKE_SYMBOL2 (windows-98),
@@ -1648,6 +1650,14 @@ static symbols ed[] =
   MAKE_SYMBOL2 (windows-nt),
   MAKE_SYMBOL2 (windows-2000),
   MAKE_SYMBOL2 (windows-xp),
+#elif defined(__linux__)
+  MAKE_SYMBOL2 (linux),
+#elif defined(__APPLE_CC__)
+  MAKE_SYMBOL2 (darwin),
+  MAKE_SYMBOL2 (macosx),
+  MAKE_SYMBOL2 (cocoa),
+#endif // __GNUG__
+
 #if !defined(__GNUG__)
   DEFUN3 (user-config-path, 0, 0, 0),
 #endif //__GNUG__

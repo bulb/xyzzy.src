@@ -1,7 +1,10 @@
 2010-04-18  bulb  <ttomise@gmail.com>
+	* src : add *features*
+	LinuxとMac用に追加(適当)。
+
 	* src : fix create_default_windows
 	Window初期化対応
-	
+
 	* src/Makefile.gcc : add option
 	arch optionの追加
 	
