@@ -2,8 +2,16 @@ CXX := g++
 CXXFLAGS = -g -DDEBUG -D_M_IX86 -D__XYZZY__
 CXXFLAGS += --input-charset=CP932  --exec-charset=CP932
 CXXFLAGS += #-DDEBUG_GC
+LDFLAGS =
 RM := rm -f
 LIBS :=
+
+ARCH = $(shell uname -s | tr '[A-Z]' '[a-z]')
+
+ifeq ($(ARCH), darwin)
+CXXFLAGS += -arch i386
+LDFLAGS += -arch i386
+endif
 
 FINAL_TARGET := xyzzy
 
@@ -157,6 +165,7 @@ num-arith.h: dpp
 PHONY: all clean distclean
 clean:
 	$(RM) ./*.o
+	$(RM) ./*.exe
 	$(RM) ./gen-syms
 	$(RM) ./gen-ctab
 	$(RM) ./gen-msg
