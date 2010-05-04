@@ -1,5 +1,6 @@
 *.lc
 *.obj
+*.o
 *.pdb
 *.idb
 .delete.me
@@ -47,6 +48,14 @@ xyzzy.wxp
 xyzzy.exe
 xyzzycli.exe
 xyzzyenv.exe
+xyzzy
+src/gen-char-width
+src/gen-ctab
+src/gen-ibmext
+src/gen-msg
+src/gen-syms
+src/gen-utf2sjis
+
 
 src/unicode/8859-1.TXT
 src/unicode/8859-10.TXT
