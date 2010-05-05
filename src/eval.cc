@@ -484,7 +484,73 @@ funcall_builtin (lisp f, lisp arglist)
 #ifdef DEBUG_GC
   MARK_FUNCALL (f);
 #endif
+
+#  if defined(_MSC_VER)
   return lfunction_proc_0 (xfunction_fn (f))();
+#  elif defined(__GNUG__)
+  switch (nargs) {
+  case 0:
+    return lfunction_proc_0 (xfunction_fn (f))();
+    break;
+  case 1:
+    if (!xfunction_nopts (f) && need_rest_p (f))
+      return lfunction_proc_1 (xfunction_fn (f))(*stack);
+    else
+      return lfunction_proc_1 (xfunction_fn (f))(*(stack-1));
+    break;
+  case 2:
+    if (!xfunction_nopts (f) && need_rest_p (f))
+      return lfunction_proc_2 (xfunction_fn (f))(*(stack-1), *stack);
+    else
+      return lfunction_proc_2 (xfunction_fn (f))(*(stack-2), *(stack-1));
+    break;
+  case 3:
+    if (!xfunction_nopts(f) && need_rest_p (f))
+      return lfunction_proc_3 (xfunction_fn (f))(*(stack - 2), *(stack - 1), *(stack - 0));
+    else
+      return lfunction_proc_3 (xfunction_fn (f))(*(stack - 3), *(stack - 2), *(stack - 1));
+    break;
+  case 4:
+    if (!xfunction_nopts(f) && need_rest_p (f))
+      return lfunction_proc_4 (xfunction_fn (f))(*(stack - 3), *(stack - 2), *(stack - 1), *(stack - 0));
+    else
+      return lfunction_proc_4 (xfunction_fn (f))(*(stack - 4), *(stack - 3), *(stack - 2), *(stack - 1));
+    break;
+  case 5:
+    if (!xfunction_nopts(f) && need_rest_p (f))
+      return lfunction_proc_5 (xfunction_fn (f))(*(stack - 4), *(stack - 3), *(stack - 2), *(stack - 1), *(stack - 0));
+    else
+      return lfunction_proc_5 (xfunction_fn (f))(*(stack - 5), *(stack - 4), *(stack - 3), *(stack - 2), *(stack - 1));
+    break;
+  case 6:
+    if (!xfunction_nopts(f) && need_rest_p (f))
+      return lfunction_proc_6 (xfunction_fn (f))(*(stack - 5), *(stack - 4), *(stack - 3), *(stack - 2), *(stack - 1), *(stack - 0));
+    else
+      return lfunction_proc_6 (xfunction_fn (f))(*(stack - 6), *(stack - 5), *(stack - 4), *(stack - 3), *(stack - 2), *(stack - 1));
+    break;
+  case 7:
+    if (!xfunction_nopts(f) && need_rest_p (f))
+      return lfunction_proc_7 (xfunction_fn (f))(*(stack - 6), *(stack - 5), *(stack - 4), *(stack - 3), *(stack - 2), *(stack - 1), *(stack - 0));
+    else
+      return lfunction_proc_7 (xfunction_fn (f))(*(stack - 7), *(stack - 6), *(stack - 5), *(stack - 4), *(stack - 3), *(stack - 2), *(stack - 1));
+    break;
+  case 8:
+    if (!xfunction_nopts(f) && need_rest_p (f))
+      return lfunction_proc_8 (xfunction_fn (f))(*(stack - 7), *(stack - 6), *(stack - 5), *(stack - 4), *(stack - 3), *(stack - 2), *(stack - 1), *(stack - 0));
+    else
+      return lfunction_proc_8 (xfunction_fn (f))(*(stack - 8), *(stack - 7), *(stack - 6), *(stack - 5), *(stack - 4), *(stack - 3), *(stack - 2), *(stack - 1));
+    break;
+  case 9:
+    if (!xfunction_nopts(f) && need_rest_p (f))
+      return lfunction_proc_9 (xfunction_fn (f))(*(stack - 8), *(stack - 7), *(stack - 6), *(stack - 5), *(stack - 4), *(stack - 3), *(stack - 2), *(stack - 1), *(stack - 0));
+    else
+      return lfunction_proc_9 (xfunction_fn (f))(*(stack - 9), *(stack - 8), *(stack - 7), *(stack - 6), *(stack - 5), *(stack - 4), *(stack - 3), *(stack - 2), *(stack - 1));
+    break;
+
+  }
+    
+#  endif // __GNUG__
+
 #else
 # error "Not tested"
 #endif

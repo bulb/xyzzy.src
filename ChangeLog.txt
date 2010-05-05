@@ -1,3 +1,7 @@
+2010-05-05  bulb  <ttomise@gmail.com>
+	* src : fix funcall_builtin.
+	どうもGCCのalloca(3)が期待した動きをしないため、ベタで記述。
+
 2010-04-18  bulb  <ttomise@gmail.com>
 	* src : add *features*
 	LinuxとMac用に追加(適当)。
