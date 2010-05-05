@@ -542,8 +542,16 @@ create_file_stream (lisp filename, lisp direction, lisp if_exists,
   if (if_exists == Kappend)
     fseek (fp, 0, SEEK_END);
 
-  xfile_stream_input (stream) = (access & O_RDONLY) ? fp : 0;
-  xfile_stream_output (stream) = (access & O_WRONLY) ? fp : 0;
+#if DEBUG_PRINT
+  int c;
+  while ((c = getc(fp)) != EOF) {
+    putc(c, stdout);
+  }
+  fseek (fp, 0, SEEK_SET);
+#endif // DEBUG_PRINT
+
+  xfile_stream_input (stream) = fp;/*(access & O_RDONLY) ? fp : 0;*/
+  xfile_stream_output (stream) = fp;/*(access & O_WRONLY) ? fp : 0;*/
 #endif // __GNUG__
 
   if (direction == Kprobe)

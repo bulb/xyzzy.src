@@ -1,4 +1,7 @@
 2010-05-05  bulb  <ttomise@gmail.com>
+	* src : fix create_file_stream.
+	暫定処置。とりあえず、Lispファイルを読み込めるようにする。
+
 	* src : fix funcall_builtin.
 	どうもGCCのalloca(3)が期待した動きをしないため、ベタで記述。
 
