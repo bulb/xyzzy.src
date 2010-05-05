@@ -1,4 +1,7 @@
 2010-05-05  bulb  <ttomise@gmail.com>
+	* src : add 'listen.cc'.
+	Makefile.gccに追加
+	
 	* src : fix create_file_stream.
 	暫定処置。とりあえず、Lispファイルを読み込めるようにする。
 

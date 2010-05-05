@@ -46,6 +46,7 @@ SRCS := \
 	insdel.cc \
 	keymap.cc \
 	list.cc \
+	listen.cc \
 	lex.cc \
 	largeint.cc \
 	lprint.cc \

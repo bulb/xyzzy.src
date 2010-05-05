@@ -232,3 +232,24 @@ Fset_cursor (lisp cur)
   xsymbol_value (Vcursor_shape) = cur;
   return Qt;
 }
+
+lisp
+Fsi_minibuffer_message (lisp message, lisp prompt)
+{
+  ///<todo
+  return Qt;
+}
+
+lisp
+Fsi_show_window_foreground ()
+{
+  ///<todo
+  return Qnil;
+}
+
+lisp
+Fsi_activate_toplevel ()
+{
+  ///<todo
+  return Qnil;
+}

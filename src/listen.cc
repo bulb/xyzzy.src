@@ -1,6 +1,7 @@
 #include "ed.h"
 #include "listen.h"
 
+#if defined(_MSC_VER)
 void
 lwait_object::cleanup ()
 {
@@ -11,18 +12,24 @@ lwait_object::cleanup ()
       hevent = 0;
     }
 }
+#elif defined(__GNUG__)
+#endif // __GNUG__
 
 static void
 decref_waitobj (lisp lwaitobj)
 {
+#if defined(_MSC_VER)
   if (xwait_object_hevent (lwaitobj)
       && !--xwait_object_ref (lwaitobj))
     ((lwait_object *)lwaitobj)->cleanup ();
+#elif defined(__GNUG__)
+#endif // __GNUG__
 }
 
 void
 Buffer::cleanup_waitobj_list ()
 {
+#if defined(_MSC_VER)
   for (lisp p = lwaitobj_list; consp (p); p = xcdr (p))
     {
       lisp lwaitobj = xcar (p);
@@ -30,41 +37,56 @@ Buffer::cleanup_waitobj_list ()
         decref_waitobj (lwaitobj);
     }
   lwaitobj_list = Qnil;
+#elif defined(__GNUG__)
+#endif // __GNUG__
 }
 
 lisp
 Fsi_create_wait_object ()
 {
+#if defined(_MSC_VER)
+
   lisp lwaitobj = make_wait_object ();
   xwait_object_hevent (lwaitobj) = CreateEvent (0, 0, 0, 0);
   if (!xwait_object_hevent (lwaitobj))
     FEsimple_win32_error (GetLastError ());
+
   xwait_object_ref (lwaitobj) = 0;
   return lwaitobj;
+#elif defined(__GNUG__)
+  return Qnil;
+#endif 
 }
 
 lisp
 Fsi_add_wait_object (lisp lwaitobj, lisp lbuffer)
 {
+#if defined(_MSC_VER)
   check_wait_object (lwaitobj);
   Buffer *bp = Buffer::coerce_to_buffer (lbuffer);
   bp->lwaitobj_list = xcons (lwaitobj, bp->lwaitobj_list);
   xwait_object_ref (lwaitobj)++;
+#elif defined(__GNUG__)
+#endif // __GNUG__
   return Qt;
 }
 
 lisp
 Fsi_remove_wait_object (lisp lwaitobj, lisp lbuffer)
 {
+#if defined(_MSC_VER)
   check_wait_object (lwaitobj);
   Buffer *bp = Buffer::coerce_to_buffer (lbuffer);
   if (lwaitobj == Qnil)
     bp->cleanup_waitobj_list ();
   else if (delq (lwaitobj, &bp->lwaitobj_list))
     decref_waitobj (lwaitobj);
+#elif defined(__GNUG__)
+#endif // __GNUG__
   return Qt;
 }
 
+#if !defined(__GNUG__) ///<todo
 UINT wm_private_xyzzysrv;
 static HANDLE hevent_listen;
 
@@ -170,3 +192,4 @@ read_listen_server (WPARAM wparam, LPARAM lparam)
   CloseHandle (hmap);
   return r;
 }
+#endif // !__GNUG__

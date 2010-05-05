@@ -856,19 +856,15 @@ static symbols sys[] =
   SI_DEFUN3 (*startup, 0, 0, 0),
 
   /* toplev.cc */
-#if !defined(__GNUG__)
   SI_DEFUN3 (*minibuffer-message, 1, 1, 0),
   SI_DEFUN3 (*show-window-foreground, 0, 0, 0),
   SI_DEFUN3 (*activate-toplevel, 0, 0, 0),
-#endif //__GNUG__
   SI_DEFVAR2 (*paste-hook*),
 
   /* buffer.cc */
-#if !defined(__GNUG__)
   SI_DEFUN3 (*create-wait-object, 0, 0, 0),
   SI_DEFUN3 (*add-wait-object, 1, 1, 0),
   SI_DEFUN3 (*remove-wait-object, 1, 1, 0),
-#endif //__GNUG__
 
   /* disp.cc */
   SI_DEFVAR2 (*find-motion*),

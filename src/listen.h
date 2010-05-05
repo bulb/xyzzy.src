@@ -11,8 +11,11 @@ struct xyzzysrv_param
 {
   int size;
   DWORD pid;
+#if defined(_MSC_VER)
   HANDLE hevent;
   HWND hwnd;
+#elif defined(__GNUG__)
+#endif // __GNUG__
   int kill_ok;
   char data[1];
 };
