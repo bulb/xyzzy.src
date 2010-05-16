@@ -1,4 +1,7 @@
 2010-05-16  bulb  <ttomise@gmail.com>
+	* src : fix init_lisp_object.
+	create_std_streamsを追加。
+
 	* src : add debug code 'Verror_output -> Vterminal_io'.
 	debug用にCALL STACKの出力先をstdoutに向けてみる。
 

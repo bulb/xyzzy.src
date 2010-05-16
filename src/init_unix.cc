@@ -303,6 +303,7 @@ static int init_lisp_object (void)
   init_symbol_value ();
   init_syntax_spec ();
   init_env_symbols ();
+  create_std_streams ();
 }
 
 static int
