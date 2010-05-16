@@ -40,6 +40,12 @@ make_path (const char *s, int append_slash = 1)
 static void
 init_module_dir ()
 {
+  char path[PATH_MAX];
+  char *dir = getenv("PWD");
+  if (dir) {
+    strcpy (path, dir);
+  }
+  xsymbol_value (Qmodule_dir) = make_path (path);
 }
 
 static inline void
@@ -92,6 +98,15 @@ init_load_path ()
     xsymbol_value (Vload_path) =
       xcons (Fmerge_pathnames (l, xsymbol_value (Qdefault_dir)),
 	     xsymbol_value (Vload_path));
+
+  xsymbol_value (Vload_path) =
+    xcons (Fmerge_pathnames (l, xsymbol_value (Qmodule_dir)),
+           xsymbol_value (Vload_path));
+
+  xsymbol_value (Vload_path) =
+    xcons (Fmerge_pathnames (make_string ("site-lisp"),
+                             xsymbol_value (Qmodule_dir)),
+           xsymbol_value (Vload_path));
 }
 
 static void

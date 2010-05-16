@@ -1,4 +1,8 @@
 2010-05-16  bulb  <ttomise@gmail.com>
+	* src : fix init_module_dir, init_load_path.
+	(si:system-root)は、src下になってしまうため、以下が必要。
+	$ ln -s ../lisp lisp
+
 	* src : add 'doc.cc'.
 
 	* src : fix init_lisp_object.
