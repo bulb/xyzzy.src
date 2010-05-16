@@ -30,6 +30,7 @@ SRCS := \
 	bytecode.cc \
 	byte-stream.cc \
 	ces.cc \
+	encdec.cc \
 	encoding.cc \
 	environ.cc \
 	char.cc \
@@ -52,6 +53,7 @@ SRCS := \
 	lprint.cc \
 	lread.cc \
 	main.cc \
+	md5c.cc \
 	move.cc \
 	mman.cc \
 	msgdef.cc \
@@ -66,6 +68,7 @@ SRCS := \
 	signal.cc \
 	symbol.cc \
 	vector.cc \
+	sha1.cc \
 	StrBuf.cc \
 	stream.cc \
 	structure.cc \

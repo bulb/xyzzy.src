@@ -1,3 +1,7 @@
+2010-05-16  bulb  <ttomise@gmail.com>
+	* src : add 'encdec.cc', 'md5c.cc', 'sha1.cc'.
+	Makefile.gccに追加
+
 2010-05-05  bulb  <ttomise@gmail.com>
 	* src : add 'listen.cc'.
 	Makefile.gccに追加

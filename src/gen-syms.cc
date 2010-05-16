@@ -970,7 +970,6 @@ static symbols sys[] =
   MAKE_SYMBOL (chunk, Qsi_chunk),
 
   /* encdec.cc */
-#if !defined(__GNUG__)
   SI_DEFUN3 (base64-decode, 1, 1, 0),
   SI_DEFUN3 (base64-encode, 1, 2, 0),
   SI_DEFUN3 (uuencode, 1, 1, 0),
@@ -984,7 +983,6 @@ static symbols sys[] =
   SI_DEFUN3 (sha-1, 1, 0, 0),
   SI_DEFUN3 (hmac-md5, 2, 0, 0),
   SI_DEFUN3 (hmac-sha-1, 2, 0, 0),
-#endif // __GNUG__
 
   /* lread.cc */
   SI_DEFUN3 (*load-library, 1, 0, FFneed_rest),
