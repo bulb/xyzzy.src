@@ -258,7 +258,11 @@ Fsi_throw_error (lisp cc)
           in_stack_trace = 1;
           try
             {
-              print_stack_trace (xsymbol_value (Verror_output), cc);
+#if defined(_MSC_VER)
+	      print_stack_trace (xsymbol_value (Verror_output), cc);
+#elif defined(__GNUG__) /// for debug
+	      print_stack_trace (xsymbol_value (Vterminal_io), cc);
+#endif /// __GNUG__
             }
           catch (nonlocal_jump &)
             {
