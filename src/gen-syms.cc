@@ -1022,11 +1022,11 @@ static symbols sys[] =
 
   /* pane.cc */
   SI_DEFUN3 (plugin-arg, 0, 0, 0),
+#endif //__GNUG__
 
   /* doc.cc */
   SI_DEFUN3 (*snarf-documentation, 2, 0, 0),
   SI_DEFUN3 (get-documentation-string, 4, 0, 0),
-#endif //__GNUG__
 
   /* listen.cc */
   SI_DEFVAR2 (*accept-kill-xyzzy*),

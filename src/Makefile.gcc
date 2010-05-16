@@ -38,6 +38,7 @@ SRCS := \
 	chunk.cc \
 	chtab.cc \
 	data.cc \
+	doc.cc \
 	dumpver.cc \
 	eval.cc \
 	fileio.cc \

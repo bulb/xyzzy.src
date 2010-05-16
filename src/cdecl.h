@@ -42,8 +42,11 @@
 #  define PATH_MAX 1024
 #elif defined(__GNUG__)
 #  ifndef PATH_MAX
-#  define PATH_MAX 1024
+#   define PATH_MAX 1024
 #  endif // PATH_MAX
+#  ifndef MAX_PATH
+#   define MAX_PATH PATH_MAX
+#  endif // MAX_PATH
 #endif // __GNUG__
 # define BUFFER_NAME_MAX PATH_MAX
 

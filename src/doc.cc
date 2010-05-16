@@ -68,6 +68,7 @@ apropos_doc (const Char *p, int l)
 lisp
 Fsi_get_documentation_string (lisp symbol, lisp indicator, lisp apropos, lisp lpath)
 {
+#if !defined(__GNUG__) ///<todo
   lisp doc = Fget (symbol, indicator, Qnil);
   if (stringp (doc))
     {
@@ -113,5 +114,6 @@ Fsi_get_documentation_string (lisp symbol, lisp indicator, lisp apropos, lisp lp
           throw e;
         }
     }
+#endif // !__GNUG__
   return Qnil;
 }
