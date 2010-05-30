@@ -81,10 +81,11 @@ count_prompt_columns (const Char *s, int l)
 
 lisp
 read_minibuffer (const Char *prompt, long prompt_length, lisp def,
-                 lisp type, lisp compl, lisp history,
+                 lisp type, lisp comple, lisp history,
                  int noselect, int completion, int must_match,
                  lisp title, int opt_arg)
 {
+#if defined(_MSC_VER)
   static int last_ime_mode = kbd_queue::IME_MODE_OFF;
 
   check_kbd_enable ();
@@ -113,7 +114,7 @@ read_minibuffer (const Char *prompt, long prompt_length, lisp def,
   WindowConfiguration wc;
 
   protect_gc gcpro4 (type);
-  protect_gc gcpro5 (compl);
+  protect_gc gcpro5 (comple);
 
   bp->run_hook (Venter_minibuffer_hook, bp->lbp, history);
 
@@ -137,7 +138,7 @@ read_minibuffer (const Char *prompt, long prompt_length, lisp def,
   bp->b_fold_mode = bp->b_fold_columns = Buffer::FOLD_NONE;
   bp->fold_width_modified ();
   bp->lcomplete_type = type;
-  bp->lcomplete_list = compl;
+  bp->lcomplete_list = comple;
   bp->b_ime_mode = last_ime_mode;
   last_ime_mode = kbd_queue::IME_MODE_OFF;
 
@@ -220,15 +221,23 @@ read_minibuffer (const Char *prompt, long prompt_length, lisp def,
     }
 
   return result != Qnil ? result : contents;
+#elif defined(__GNUG__)
+  return Qnil;
+#endif //__GNUG__
 }
 
 lisp
 complete_read (const Char *prompt, long prompt_length, lisp def,
-               lisp type, lisp compl, lisp history,
+               lisp type, lisp comple, lisp history,
                int must_match, int opt_arg)
 {
-  lisp string = read_minibuffer (prompt, prompt_length, def, type, compl,
+#if defined(_MSC_VER)
+  lisp string = read_minibuffer (prompt, prompt_length, def, type, comple,
                                  history, 0, 1, must_match, Qnil, opt_arg);
+#elif defined(__GNUG__)
+  lisp string = Qnil;
+#endif // __GNUG__
+  
 
   if (!symbolp (type))
     return string;
@@ -283,6 +292,7 @@ read_filename (const Char *prompt, long prompt_length, lisp type,
                lisp title, lisp defalt, lisp history)
 {
   Buffer *bp = selected_buffer ();
+#if defined(_MSC_VER)
   return read_minibuffer (prompt, prompt_length,
                           (defalt != Qnil
                            ? defalt
@@ -295,6 +305,9 @@ read_filename (const Char *prompt, long prompt_length, lisp type,
                           1, 1,
                           type == Kexist_file_name || type == Kdirectory_name,
                           title, -1);
+#elif defined(__GNUG__)
+  return Qnil;
+#endif // __GNUG__
 }
 
 lisp
@@ -869,7 +882,7 @@ Fminibuffer_default (lisp buffer)
 }
 
 static lisp
-complete_read (lisp prompt, lisp def, lisp type, lisp compl,
+complete_read (lisp prompt, lisp def, lisp type, lisp comple,
                lisp history, int must_match, lisp keys)
 {
   check_string (prompt);
@@ -877,7 +890,7 @@ complete_read (lisp prompt, lisp def, lisp type, lisp compl,
   if (x != Qnil)
     history = x;
   return complete_read (xstring_contents (prompt), xstring_length (prompt),
-                        def, type, compl, history, must_match, -1);
+                        def, type, comple, history, must_match, -1);
 }
 
 lisp
@@ -1006,12 +1019,12 @@ Fread_exact_char_encoding (lisp prompt, lisp keys)
 }
 
 lisp
-Fcompleting_read (lisp prompt, lisp compl, lisp keys)
+Fcompleting_read (lisp prompt, lisp comple, lisp keys)
 {
   return complete_read (prompt,
                         find_keyword (Kdefault, keys),
                         find_keyword_bool (Kcase_fold, keys) ? Klist_ignore_case : Klist,
-                        compl, Qnil,
+                        comple, Qnil,
                         find_keyword_bool (Kmust_match, keys),
                         keys);
 }
