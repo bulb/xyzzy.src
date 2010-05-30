@@ -679,7 +679,6 @@ static symbols lsp[] =
   DEFVAR2 (*garbage-collection-messages*),
 
   /* environ.cc */
-#if !defined(__GNUG__)
   DEFUN3 (get-decoded-time, 0, 0, 0),
   DEFUN3 (get-universal-time, 0, 0, 0),
   DEFUN3 (decode-universal-time, 1, 1, 0),
@@ -688,7 +687,6 @@ static symbols lsp[] =
   DEFUN3 (software-type, 0, 0, 0),
   DEFUN3 (software-version, 0, 0, 0),
   DEFUN3 (software-version-display-string, 0, 0, 0),
-#endif //__GNUG__
 
   /* structure.cc */
   MAKE_SYMBOL (structure, Qstructure),
@@ -1602,13 +1600,9 @@ static symbols ed[] =
   DEFUN3 (local-variable-p, 1, 1, 0),
   DEFUN3 (command-execute, 1, 1, 0),
   DEFUN3 (interactive-p, 0, 0, 0),
-#if !defined(__GNUG__)
   DEFSF3 (save-excursion),
-#endif //__GNUG__
   DEFSF3 (save-restriction),
-#if !defined(__GNUG__)
   DEFSF3 (save-window-excursion),
-#endif //__GNUG__
   DEFUN3 (commandp, 1, 0, 0),
   DEFUN3 (buffer-local-value, 2, 0, 0),
   DEFVAR2 (*protected-local-variables*),
@@ -2023,7 +2017,9 @@ static symbols ed[] =
 #if !defined(__GNUG__)
   DEFUN3 (set-window, 1, 0, 0),
   DEFCMD3 (enlarge-window, 0, 2, 0, "p"),
+#endif //__GNUG__
   MAKE_SYMBOL2 (insert-default-directory),
+#if !defined(__GNUG__)
   DEFUN3 (screen-width, 0, 0, 0),
   DEFUN3 (screen-height, 0, 0, 0),
   DEFUN3 (window-width, 0, 1, 0),
@@ -2158,10 +2154,8 @@ static symbols ed[] =
   DEFUN3 (refresh-highlight-info, 0, 1, 0),
 
   /* minibuf.cc */
-#if !defined(__GNUG__)
   DEFCMD3 (exit-recursive-edit, 0, 1, 0, ""),
   DEFCMD3 (quit-recursive-edit, 0, 1, 0, ""),
-#endif //__GNUG__
   DEFVAR2 (*enable-recursive-minibuffers*),
   DEFVAR2 (*enter-minibuffer-hook*),
   DEFVAR2 (*exit-minibuffer-hook*),
@@ -2169,7 +2163,6 @@ static symbols ed[] =
   MAKE_SYMBOL2 (minibuffer-local-completion-map),
   MAKE_SYMBOL2 (minibuffer-local-map),
   MAKE_SYMBOL2 (minibuffer-local-command-line-map),
-#if !defined(__GNUG__)
   DEFUN3 (*do-completion, 2, 2, 0),
   DEFUN3 (minibuffer-completion-type, 0, 1, 0),
   DEFUN3 (minibuffer-completion-list, 0, 1, 0),
@@ -2194,7 +2187,6 @@ static symbols ed[] =
   DEFUN3 (read-char-encoding, 1, 0, FFneed_rest),
   DEFUN3 (read-exact-char-encoding, 1, 0, FFneed_rest),
   DEFUN3 (completing-read, 2, 0, FFneed_rest),
-#endif //__GNUG__
   MAKE_SYMBOL2 (universal-argument),
   MAKE_SYMBOL2 (*buffer-package*),
   DEFVAR2 (*minibuffer-save-ime-status*),

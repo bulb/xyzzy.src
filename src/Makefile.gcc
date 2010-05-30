@@ -83,9 +83,10 @@ SRCS := \
 	version.cc \
 	Window.cc \
 	wstream.cc \
-	xlist.cc
+	xlist.cc \
+	minibuf.cc
 
-#	minibuf.cc \
+#	kbd.cc
 
 
 OBJS = $(SRCS:.cc=.o)

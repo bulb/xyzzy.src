@@ -84,10 +84,12 @@ WriteRegistry::remove (const char *key) const
   SetLastError (e);
   return 0;
 }
+#endif // __GNUG__
 
 lisp
 Fwrite_registry (lisp lsection, lisp lkey, lisp val)
 {
+#if !defined(__GNUG__)
   lsection = Fstring (lsection);
   char *section = (char *)alloca (w2sl (lsection) + 1);
   w2s (section, lsection);
@@ -128,12 +130,14 @@ Fwrite_registry (lisp lsection, lisp lkey, lisp val)
 
   if (!r.set (key, fixnum_value (val)))
     FEsimple_win32_error (GetLastError (), lkey);
+#endif // !__GNUG__
   return Qt;
 }
 
 lisp
 Fwrite_registry_literally (lisp lsection, lisp lkey, lisp val)
 {
+#if !defined(__GNUG__)
   lsection = Fstring (lsection);
   char *section = (char *)alloca (w2sl (lsection) + 1);
   w2s (section, lsection);
@@ -166,9 +170,11 @@ Fwrite_registry_literally (lisp lsection, lisp lkey, lisp val)
                   sizeof (Char) * xstring_length (val)))
         FEsimple_win32_error (GetLastError (), lkey);
     }
+#endif // !__GNUG__
   return Qt;
 }
 
+#if defined(_MSC_VER)
 static HKEY
 check_root (lisp lroot)
 {
@@ -184,10 +190,12 @@ check_root (lisp lroot)
     return HKEY_USERS;
   return 0;
 }
+#endif // _MSC_VER
 
 lisp
 Fread_registry (lisp lsection, lisp lkey, lisp lroot)
 {
+#if defined(_MSC_VER)
   lsection = Fstring (lsection);
   char *section = (char *)alloca (w2sl (lsection) + 1);
   w2s (section, lsection);
@@ -271,11 +279,15 @@ Fread_registry (lisp lsection, lisp lkey, lisp lroot)
     default:
       return Qnil;
     }
+#elif defined(__GNUG__)
+  return Qnil;
+#endif // __GNUG__
 }
 
 lisp
 Flist_registry_key (lisp lsection, lisp lroot)
 {
+#if defined(_MSC_VER)
   lsection = Fstring (lsection);
   char *section = (char *)alloca (w2sl (lsection) + 1);
   w2s (section, lsection);
@@ -297,18 +309,24 @@ Flist_registry_key (lisp lsection, lisp lroot)
         break;
     }
   return p;
+#elif defined(__GNUG__)
+  return Qnil;
+#endif // __GNUG__
 }
 
 lisp
 Fsi_delete_registry_tree ()
 {
+#if !defined(__GNUG__) ///< todo
   reg_delete_tree ();
+#endif // !__GNUG__
   return Qnil;
 }
 
 lisp
 Fget_decoded_time ()
 {
+#if !defined(__GNUG__) ///< todo
   SYSTEMTIME s;
   GetLocalTime (&s);
   multiple_value::value (1) = make_fixnum (s.wMinute);
@@ -340,6 +358,9 @@ Fget_decoded_time ()
 
   multiple_value::count () = 9;
   return make_fixnum (s.wSecond);
+#else
+  return Qnil;
+#endif // __GNUG__
 }
 
 #define BASE_YEAR 1900
@@ -385,6 +406,7 @@ decoded_time_to_universal_time (int year, int mon, int day,
 #define FILETIME_UNIT_PER_SECOND 10000000
 #define FILETIME_UTC_BASE   9435484800i64   // FileTime (1900/1/1 0:0:0)
 
+#if !defined(__GNUG__)
 lisp
 file_time_to_universal_time (const FILETIME &ft)
 {
@@ -392,19 +414,25 @@ file_time_to_universal_time (const FILETIME &ft)
   i = i / FILETIME_UNIT_PER_SECOND - FILETIME_UTC_BASE;
   return make_integer (*(large_int *)&i);
 }
+#endif // !__GNUG__
 
 lisp
 Fget_universal_time ()
 {
+#if !defined(__GNUG__) ///<todo
   SYSTEMTIME st;
   GetSystemTime (&st);
   return decoded_time_to_universal_time (st.wYear, st.wMonth, st.wDay,
                                          st.wHour, st.wMinute, st.wSecond, 0);
+#else
+  return Qnil;
+#endif // __GNUG__
 }
 
 static int
 get_timezone (lisp ltimezone, int *daylight)
 {
+#if !defined(__GNUG__)
   *daylight = 0;
   if (!ltimezone || ltimezone == Qnil)
     {
@@ -449,10 +477,14 @@ get_timezone (lisp ltimezone, int *daylight)
         }
       return timezone;
     }
+#else
+  return 0;
+#endif // __GNUG__
 }
 
 #define SECONDS_PER_DAY 86400
 
+#if !defined(__GNUG__)
 void
 decode_universal_time (lisp lutc, decoded_time *dt)
 {
@@ -498,10 +530,12 @@ decode_universal_time (lisp lutc, decoded_time *dt)
   dt->day = ndays;
   dt->mon = mon;
 }
+#endif // __GNUG__
 
 lisp
 Fdecode_universal_time (lisp lutc, lisp ltimezone)
 {
+#if !defined(__GNUG__) ///<todo
   decoded_time dt;
   dt.timezone = get_timezone (ltimezone, &dt.daylight);
   decode_universal_time (lutc, &dt);
@@ -520,6 +554,9 @@ Fdecode_universal_time (lisp lutc, lisp ltimezone)
                                              make_fixnum (3600)));
   multiple_value::count () = 9;
   return make_fixnum (dt.sec);
+#else
+  return Qnil;
+#endif // __GNUG__
 }
 
 lisp
@@ -537,6 +574,7 @@ Fencode_universal_time (lisp lsec, lisp lmin, lisp lhour,
   int year = fixnum_value (lyear);
   if (year >= 0 && year < 100)
     {
+#if !defined(__GNUG__)
       SYSTEMTIME s;
       GetLocalTime (&s);
       year += s.wYear / 100 * 100;
@@ -544,6 +582,7 @@ Fencode_universal_time (lisp lsec, lisp lmin, lisp lhour,
         year += 100;
       else if (year >= s.wYear + 50)
         year -= 100;
+#endif //__GNUG__
     }
 
   int daylight;
@@ -555,19 +594,24 @@ Fencode_universal_time (lisp lsec, lisp lmin, lisp lhour,
 lisp
 Fget_internal_real_time ()
 {
+#if defined(_MSC_VER)
   return make_fixnum (GetTickCount () & LONG_MAX);
+#elif defined(__GNUG__)
+  return Qnil;
+#endif // __GNUG__
 }
 
 lisp
 Fsi_performance_counter ()
 {
+#if !defined(__GNUG__)
   __int64 x;
   if (sysdep.perf_counter_present_p
       && QueryPerformanceCounter ((LARGE_INTEGER *)&x))
     return make_integer (*(large_int *)&x);
+#endif // __GNUG__
   return Fget_internal_real_time ();
 }
-#endif //__GNUG__
 
 lisp
 Fsoftware_type ()

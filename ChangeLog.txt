@@ -1,4 +1,6 @@
 2010-05-30  bulb  <ttomise@gmail.com>
+	* src : add 'minibuf.cc'.
+
 	* src : fix compl -> comple.
 
 2010-05-16  bulb  <ttomise@gmail.com>
