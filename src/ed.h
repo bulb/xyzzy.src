@@ -413,6 +413,7 @@ public:
   static const char FrameClassName[];
   static const char ClientClassName[];
   static const char ModelineClassName[];
+#endif // __GNUG__
 
   HINSTANCE hinst;
   HWND toplev;
@@ -420,10 +421,11 @@ public:
 
   HWND hwnd_clipboard;
 
+#if !defined(__GNUG__) ///< todo
   kbd_queue kbdq;
   mouse_state mouse;
   ime_comp_queue ime_compq;
-#endif // __GNUG__
+#endif //__GNUG__
   Frame active_frame;
 #if !defined(__GNUG__)
   FontSet text_font;
@@ -434,12 +436,11 @@ public:
   itimer as_itimer;
 
   status_area stat_area;
-
 #endif // __GNUG__
+
   int default_tab_columns;
   int auto_save_count;
 
-#if !defined(__GNUG__)
   int toplevel_is_active;
   int ime_composition;
   int ime_open_mode;
@@ -471,17 +472,17 @@ public:
   int quit_vkey;
   int quit_mod;
 
+#ifndef __GNUG__
   ATOM atom_toplev;
+#endif // __GNUG__
   int minibuffer_prompt_column;
 
+#ifndef __GNUG__
   utimer user_timer;
 #endif // __GNUG__
-  
+
   void *initial_stack;
-  
-#if !defined(__GNUG__)
   int in_gc;
-#endif // __GNUG__
 };
 
 extern Application app;

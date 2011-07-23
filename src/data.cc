@@ -2743,16 +2743,12 @@ Fdump_xyzzy (lisp filename)
   if (!filename || filename == Qnil)
     {
       filename = xsymbol_value (Qdump_image_path);
-#if !defined(__GNUG__) ///<TODO
       path = app.dump_image;
-#endif //__GNUG__
     }
   else
     {
-#if !defined(__GNUG__) ///<TODO
       pathname2cstr (filename, path_buf);
       path = path_buf;
-#endif //__GNUG__
     }
 
   protect_gc gcpro (filename);
