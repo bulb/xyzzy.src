@@ -69,15 +69,9 @@
 #  ifndef FAR
 #  define FAR /* empty */
 #  endif // FAR
-#  ifndef UINT
-#  define UINT u_int32_t
-#  endif // UINT
 #  ifndef PASCAL
 #  define PASCAL /* empty */
 #  endif // PASCAL
-#  ifndef DWORD
-#  define DWORD u_int
-#  endif // DWORD
 #endif // __GNUG__
 
 typedef unsigned char u_char;
@@ -104,6 +98,18 @@ typedef u_int16_t ucs2_t;
 typedef u_int32_t ucs4_t;
 
 typedef long point_t;
+
+#if defined(__GNUG__)
+typedef int BOOL;
+typedef int DWORD;
+typedef int HANDLE;
+typedef int HINSTANCE;
+typedef int HWND;
+typedef int LANGID;
+typedef u_int32_t UINT;
+typedef u_long WPARAM;
+typedef u_long LPARAM;
+#endif // __GNUG__
 
 # undef min
 # undef max
