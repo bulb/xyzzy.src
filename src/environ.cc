@@ -673,7 +673,7 @@ Fos_csd_version ()
   return xsymbol_value (Vos_csd_version);
 }
 
-#if !defined(__GNUG__)
+#if defined(_MSC_VER)
 void
 init_environ ()
 {
@@ -738,7 +738,23 @@ init_environ ()
       break;
     }
 }
-#endif // __GNUG__
+#elif defined(__linux__) 
+void
+init_environ ()
+{
+  xsymbol_value (Vos_platform) = Vlinux;
+  xsymbol_value (Vfeatures) = xcons (Klinux, xsymbol_value (Vfeatures));
+}
+#else // deifned(__APPLE__)
+void
+init_environ ()
+{
+  xsymbol_value (Vos_platform) = Vmacosx;
+  xsymbol_value (Vfeatures) = xcons (Kmacosx, xsymbol_value (Vfeatures));
+  xsymbol_value (Vfeatures) = xcons (Kdarwin, xsymbol_value (Vfeatures));
+  xsymbol_value (Vfeatures) = xcons (Kcocoa, xsymbol_value (Vfeatures));
+}
+#endif // __APPLE__
 
 lisp
 Fget_windows_directory ()

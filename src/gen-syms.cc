@@ -916,12 +916,10 @@ static symbols sys[] =
   /* environ.cc */
   SI_DEFUN3 (system-root, 0, 0, 0),
   SI_DEFUN3 (getenv, 1, 0, 0),
-#if !defined(__GNUG__)
   SI_DEFUN3 (delete-registry-tree, 0, 0, 0),
   SI_DEFUN3 (performance-counter, 0, 0, 0),
   SI_DEFUN3 (dump-image-path, 0, 0, 0),
   DEFCONST2Q (*performance-counter-frequency*),
-#endif // __GNUG__
 
   /* chunk.cc */
 #if !defined(__GNUG__)
@@ -1103,6 +1101,7 @@ static symbols kwd[] =
   DEFKWD2 (data),
   DEFKWD2 (xyzzy),
   DEFKWD2 (ieee-floating-point),
+#if defined(_MSC_VER)
   DEFKWD2 (win32s),
   DEFKWD2 (windows-95),
   DEFKWD2 (windows-98),
@@ -1110,6 +1109,13 @@ static symbols kwd[] =
   DEFKWD2 (windows-nt),
   DEFKWD2 (windows-2000),
   DEFKWD2 (windows-xp),
+#elif defined(__linux__)
+  DEFKWD2 (linux),
+#elif defined(__APPLE__)
+  DEFKWD2 (darwin),
+  DEFKWD2 (macosx),
+  DEFKWD2 (cocoa),
+#endif // __APPLE__
   DEFKWD2 (no-dup),
   DEFKWD2 (case-fold),
   DEFKWD2 (reverse),
@@ -1614,7 +1620,6 @@ static symbols ed[] =
   DEFVAR2 (*applyhook*),
 
   /* environ.cc */
-#if !defined(__GNUG__)
   DEFUN3 (write-registry, 3, 0, 0),
   DEFUN3 (write-registry-literally, 3, 0, 0),
   DEFUN3 (read-registry, 2, 1, 0),
@@ -1628,7 +1633,6 @@ static symbols ed[] =
   DEFUN3 (os-csd-version, 0, 0, 0),
   DEFUN3 (get-windows-directory, 0, 0, 0),
   DEFUN3 (get-system-directory, 0, 0, 0),
-#endif //__GNUG__
 
 #if defined(_MSC_VER)
   MAKE_SYMBOL2 (win32s),
@@ -1640,7 +1644,7 @@ static symbols ed[] =
   MAKE_SYMBOL2 (windows-xp),
 #elif defined(__linux__)
   MAKE_SYMBOL2 (linux),
-#elif defined(__APPLE_CC__)
+#elif defined(__APPLE__)
   MAKE_SYMBOL2 (darwin),
   MAKE_SYMBOL2 (macosx),
   MAKE_SYMBOL2 (cocoa),
