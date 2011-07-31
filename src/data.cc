@@ -3,6 +3,9 @@
 #if defined(_MSC_VER)
 # include <share.h>
 # include <io.h>
+#else
+# include <fcntl.h>
+# include <sys/stat.h>
 #endif // _MSC_VER
 
 #include <setjmp.h>
@@ -1657,7 +1660,6 @@ ldata <T, F>::array_fixup_displaced_offset ()
         fixup_displaced_offset (d);
 }
 
-#if !defined(__GNUG__) ///<TODO
 static void
 dump_object (FILE *fp, const lsimple_vector *d, int n,
              const u_long used[LDATA_MAX_OBJECTS_PER_LONG])
@@ -2273,6 +2275,7 @@ rdump_object (FILE *fp, lregexp *d, int n,
       }
 }
 
+#ifdef _MSC_VER
 static inline void
 dump_object (FILE *, const lwin32_menu *, int,
              const u_long [LDATA_MAX_OBJECTS_PER_LONG])
@@ -2308,6 +2311,7 @@ rdump_object (FILE *fp, lwin32_dde_handle *d, int n,
     if (bitisset (used, bit_index (d)))
       d->hconv = 0;
 }
+#endif // _MSC_VER
 
 #define HT_EQ 0
 #define HT_EQL 1
@@ -2530,7 +2534,7 @@ ldata <T, F>::chunk_fixup_data_offset ()
         fixup_chunk_offset (d);
 }
 
-
+#ifdef _MSC_VER
 static void
 dump_object (FILE *fp, const ldll_module *d, int n,
              const u_long used[LDATA_MAX_OBJECTS_PER_LONG])
@@ -2672,6 +2676,7 @@ rdump_object (FILE *fp, lwait_object *d, int n, const u_long used[LDATA_MAX_OBJE
     if (bitisset (used, bit_index (d)))
       d->hevent = 0;
 }
+#endif // _MSC_VER
 
 static void
 dump_object (FILE *fp, const lchar_encoding *d, int n,
@@ -2717,7 +2722,6 @@ rdump_object (FILE *fp, lenvironment *d, int n, const u_long used[LDATA_MAX_OBJE
         d->lfns = Qnil;
       }
 }
-#endif //__GNUG__
 
 template <class T, u_int F>
 void
@@ -2726,9 +2730,7 @@ ldata <T, F>::dump_reps (FILE *fp)
   for (const ldata_rep *lp = l_ld.ld_rep; lp; lp = lp->dr_next)
     {
       writef (fp, lp->dr_used, sizeof lp->dr_used);
-#if !defined(__GNUG__) ///<TODO
       dump_object (fp, (const T *)lp->dr_data, LDATA_NOBJS (T), lp->dr_used);
-#endif //__GNUG__
     }
 }
 
@@ -2830,10 +2832,29 @@ ldata <T, F>::rdump_reps (FILE *fp)
     }
 }
 
+#if defined(__linux__) || defined(__APPLE__)
+int
+_filelength (int fd)
+{
+  struct stat stbuf;
+
+  if (fstat (fd, &stbuf) == -1)
+    {
+      throw dump_error ();
+    }
+  return stbuf.st_size;
+} 
+
+int
+_fileno(FILE *fp)
+{
+  return fileno (fp);
+}
+#endif // __linux__ || __APPLE__
+
 static int
 rdump_xyzzy (FILE *fp)
 {
-#if !defined(__GNUG__) ///<TODO
   dump_header head;
   readf (fp, &head, sizeof head);
   if (head.magic != DMAGIC
@@ -2873,17 +2894,19 @@ rdump_xyzzy (FILE *fp)
 # include "dataP_unix.h"
 #endif // __GNUG__
 
-#endif //__GNUG__
   return 1;
 }
 
 static int dump_flag;
 
-#if !defined(__GNUG__) ///<TODO
 int
 rdump_xyzzy ()
 {
+#ifdef _MSC_VER
   FILE *fp = _fsopen (app.dump_image, "rb", _SH_DENYWR);
+#else  // __linux__ || __APPLE__
+  FILE *fp = fopen (app.dump_image, "rb");
+#endif // __linux__ || __APPLE__
   if (!fp)
     return 0;
 
@@ -2929,7 +2952,6 @@ rdump_xyzzy ()
 
   return dump_flag;
 }
-#endif //__GNUG__
 
 lisp
 Fxyzzy_dumped_p ()
