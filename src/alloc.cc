@@ -153,7 +153,6 @@ void
 alloc_page::free (void *p)
 {
   assert (p);
-#if defined(_MSC_VER)
 
   if (ap_units_per_block)
     {
@@ -171,8 +170,9 @@ alloc_page::free (void *p)
             u_long d = (pointer_t (p) - base) / ap_unit_size;
             assert (r->commit & (1 << d));
             r->commit &= ~(1 << d);
+#if defined(_MSC_VER)
             VirtualFree (p, ap_unit_size, MEM_DECOMMIT);
-
+#endif // _MSC_VER
             d = (pointer_t (r) - base) / ap_unit_size;
             assert (r->commit & (1 << d));
             if (r->commit != (1U << d))
@@ -182,8 +182,14 @@ alloc_page::free (void *p)
               prev->next = r->next;
             else
               ap_rep = r->next;
+#if defined(_MSC_VER)
             VirtualFree (r, ap_unit_size, MEM_DECOMMIT);
             VirtualFree ((void *)base, 0, MEM_RELEASE);
+#elif defined(__GNUG__)
+	    free ((void *)base);
+#else
+# error "Not tested"
+#endif
             return;
           }
 
@@ -195,11 +201,14 @@ alloc_page::free (void *p)
   else
     {
       assert (!(pointer_t (p) & (ap_block_size - 1)));
+#if defined(_MSC_VER)
       VirtualFree (p, 0, MEM_RELEASE);
+#elif defined(__GNUG__)
+      free (p);
+#else
+# error "Not tested"
+#endif
     }
-#else // !_MSC_VER
-
-#endif // !_MSC_VER
 }
 
 fixed_heap::fixed_heap (u_int size)
