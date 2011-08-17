@@ -2196,11 +2196,9 @@ static symbols ed[] =
   DEFVAR2 (*minibuffer-save-ime-status*),
 
   /* fileio.cc */
-#if !defined(__GNUG__)
   DEFUN3 (clear-visited-file-modtime, 0, 1, 0),
   DEFUN3 (update-visited-file-modtime, 0, 1, 0),
   DEFUN3 (verify-visited-file-modtime, 0, 1, 0),
-#endif //__GNUG__
   MAKE_SYMBOL2 (version-control),
   MAKE_SYMBOL2 (kept-old-versions),
   MAKE_SYMBOL2 (kept-new-versions),
@@ -2209,12 +2207,10 @@ static symbols ed[] =
   MAKE_SYMBOL2 (pack-backup-file-name),
   MAKE_SYMBOL2 (backup-by-copying),
   MAKE_SYMBOL2Q (never),
-#if !defined(__GNUG__)
   DEFCMD3 (save-buffer, 0, 2, 0, ""),
   DEFUN3 (delete-auto-save-file, 1, 0, 0),
   DEFUN3 (do-auto-save, 0, 1, 0),
   DEFCMD3 (write-region, 3, 3, 0, "r\nFƒtƒ@ƒCƒ‹–¼: \np"),
-#endif //__GNUG__
   MAKE_SYMBOL2 (to-ascii-fileio),
   MAKE_SYMBOL2 (to-kanji-fileio),
   MAKE_SYMBOL2 (to-kana-fileio),
