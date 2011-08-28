@@ -102,6 +102,8 @@ typedef long point_t;
 #if defined(__GNUG__)
 typedef int BOOL;
 typedef int DWORD;
+typedef long LONG;
+typedef int HFONT;
 typedef int HANDLE;
 typedef int HINSTANCE;
 typedef int HWND;

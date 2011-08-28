@@ -382,18 +382,14 @@ struct Frame
 
 struct ModelineParam
 {
-#if !defined(__GNUG__) ///<TODO
   HFONT m_hfont;
-#endif // __GNUG__
   int m_height;
   int m_exlead;
   int m_exts[22];
 
   ModelineParam ();
   ~ModelineParam ();
-#if !defined(__GNUG__) ///<TODO
   void init (HFONT);
-#endif // __GNUG__
 };
 
 struct Region
@@ -429,7 +425,9 @@ public:
   Frame active_frame;
 #if !defined(__GNUG__)
   FontSet text_font;
+#endif //__GNUG__
   ModelineParam modeline_param;
+#if !defined(__GNUG__)
   StatusWindow status_window;
   key_sequence keyseq;
   itimer gc_itimer;

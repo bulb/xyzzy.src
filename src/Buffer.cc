@@ -669,7 +669,7 @@ Fget_next_buffer (lisp buffer, lisp prev, lisp tab_order, lisp linternal_p)
 #if defined(_MSC_VER)
         bp = buffer_bar::get_top_buffer ();
 #else  // __GNUG__
-       ; ///@todo
+      bp = 0; ///@todo buffer-bar.cc
 #endif // __GNUG__
       if (!bp)
         {
@@ -686,25 +686,25 @@ Fget_next_buffer (lisp buffer, lisp prev, lisp tab_order, lisp linternal_p)
       if (!bp)
         bp = Buffer::b_blist->prev_buffer (internal_p);
 #else  // __GNUG__
-      ; ///@todo
+      bp = 0; ///@todo buffer-bar.cc
 #endif // __GNUG__
     }
   else
     {
-#if defined(_MSC_VER)
       Buffer *obp = Buffer::coerce_to_buffer (buffer);
+#if defined(_MSC_VER)
       bp = (tab_order_p
             ? (!prev || prev == Qnil
                ? buffer_bar::next_buffer (obp)
                : buffer_bar::prev_buffer (obp))
             : 0);
+#else // __GNUG__
+      bp = 0; ///@todo buffer-bar.cc
+#endif // __GNUG__
       if (!bp)
         bp = (!prev || prev == Qnil
               ? obp->next_buffer (internal_p)
               : obp->prev_buffer (internal_p));
-#else // __GNUG__
-      ; ///@todo
-#endif // __GNUG__
     }
   return bp->lbp;
 }

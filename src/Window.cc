@@ -133,7 +133,6 @@ const wcolor_index_name wcolor_index_names[] =
 ///@todo COLORREF
 #endif // __GNUG__
 
-#if !defined(__GNUG__)
 ModelineParam::ModelineParam ()
      : m_hfont (0)
 {
@@ -141,13 +140,16 @@ ModelineParam::ModelineParam ()
 
 ModelineParam::~ModelineParam ()
 {
+#if !defined(__GNUG__)
   if (m_hfont && m_hfont != HFONT (GetStockObject (SYSTEM_FONT)))
     DeleteObject (m_hfont);
+#endif // __GNUG__
 }
 
 void
 ModelineParam::init (HFONT hf)
 {
+#if !defined(__GNUG__)
   if (!hf)
     m_hfont = HFONT (GetStockObject (SYSTEM_FONT));
   else
@@ -171,8 +173,8 @@ ModelineParam::init (HFONT hf)
     }
   SelectObject (hdc, of);
   ReleaseDC (0, hdc);
-}
 #endif // __GNUG__
+}
 
 #if !defined(__GNUG__)
 StatusWindow::StatusWindow ()
@@ -834,12 +836,12 @@ Window::create_default_windows ()
 
   mwp->w_rect.top = 0;
   mwp->w_rect.bottom = app.text_font.size ().cy + sysdep.edge.cy;
+#endif // __GNUG__
 
   wp->w_prev = 0;
   wp->w_next = mwp;
   mwp->w_prev = wp;
   mwp->w_next = 0;
-#endif // __GNUG__
 
   app.active_frame.windows = wp;
   app.active_frame.selected = wp;
@@ -1025,6 +1027,16 @@ Window::compute_geometry (const SIZE &old_size, int lcell)
     }
 
   app.active_frame.windows_moved = 1;
+}
+#else  // __GNUG__
+void
+Window::compute_geometry (const SIZE &old_size)
+{
+  if (!app.active_frame.windows)
+    return;
+
+  ///@todo
+
 }
 #endif // __GNUG__
 
@@ -1641,9 +1653,7 @@ Window::delete_other_windows ()
   w_order.top = 0;
   w_order.bottom = 1;
 
-#if !defined(__GNUG__)
   compute_geometry ();
-#endif // __GNUG__
   Buffer::maybe_modify_buffer_bar ();
 }
 
@@ -2042,7 +2052,6 @@ Window::find_horiz_order (int y)
 #endif
 }
 
-#if !defined(__GNUG__) ///@todo
 void
 Window::change_horiz_size (int bottom, int xmin, int xmax)
 {
@@ -2124,7 +2133,11 @@ Window::enlarge_window_horiz (int n)
   Window *wp2 = find_horiz_window (&RECT::right);
   if (!wp1 || !wp2)
     return 0;
+#if !defined(__GNUG__) ///@todo
   int goal = w_rect.bottom + n * app.text_font.cell ().cy;
+#else  // __GNUG__
+  int goal = w_rect.bottom;
+#endif // __GNUG__
   if (goal < get_horiz_min (wp1->w_rect.left, wp2->w_rect.right)
       || goal > get_horiz_max (wp1->w_rect.left, wp2->w_rect.right))
     return 0;
@@ -2139,7 +2152,11 @@ Window::enlarge_window_vert (int n)
   Window *wp2 = find_vert_window (&RECT::bottom);
   if (!wp1 || !wp2)
     return 0;
+#if !defined(__GNUG__) ///@todo
   int goal = w_rect.right + n * app.text_font.cell ().cx;
+#else  // __GNUG__
+  int goal = w_rect.right;
+#endif // __GNUG__
   if (goal < get_vert_min (wp1->w_rect.top, wp2->w_rect.bottom)
       || goal > get_vert_max (wp1->w_rect.top, wp2->w_rect.bottom))
     return 0;
@@ -2195,6 +2212,7 @@ Fenlarge_window (lisp nlines, lisp side)
   return Qt;
 }
 
+#if !defined(__GNUG__) ///@todo
 Window *
 Window::find_point_window (const POINT &point, int &vert)
 {
@@ -2230,6 +2248,7 @@ Window::frame_window_setcursor (HWND hwnd, WPARAM, LPARAM lparam)
     }
   return 0;
 }
+#endif // __GNUG__
 
 Window *
 Window::find_resizeable_window (LONG RECT::*target,
@@ -2269,8 +2288,10 @@ Window::get_horiz_min (int xmin, int xmax) const
     if (wp->w_rect.bottom == w_rect.bottom
         && wp->w_rect.left < xmax && wp->w_rect.right > xmin)
       y = max (y, int (wp->w_rect.top));
+#if !defined(__GNUG__) ///@todo
   y += (app.modeline_param.m_height + 4 + app.text_font.cell ().cy
         + sysdep.edge.cy + FRAME_WIDTH);
+#endif // __GNUG__
   if (!minibuffer_window_p () && flags () & WF_RULER)
     y += RULER_HEIGHT;
   return min (y, int (w_rect.bottom));
@@ -2285,6 +2306,7 @@ Window::get_horiz_max (int xmin, int xmax) const
     if (wp->w_rect.top == w_rect.bottom
         && wp->w_rect.left < xmax && wp->w_rect.right > xmin)
       y = min (y, int (wp->w_rect.bottom));
+#if !defined(__GNUG__) ///@todo
   if (y == mini->w_rect.bottom)
     y -= app.text_font.cell ().cy + sysdep.edge.cy;
   else
@@ -2294,6 +2316,7 @@ Window::get_horiz_max (int xmin, int xmax) const
       if (flags () & WF_RULER)
         y -= RULER_HEIGHT;
     }
+#endif // __GNUG__
   return y;
 }
 
@@ -2305,7 +2328,9 @@ Window::get_vert_min (int ymin, int ymax) const
     if (wp->w_rect.right == w_rect.right
         && wp->w_rect.top < ymax && wp->w_rect.bottom > ymin)
       x = max (x, int (wp->w_rect.left));
+#if !defined(__GNUG__) ///@todo
   x += app.text_font.cell ().cx * WINDOW_WIDTH_MIN;
+#endif // __GNUG__
   return min (x, int (w_rect.right));
 }
 
@@ -2317,10 +2342,13 @@ Window::get_vert_max (int ymin, int ymax) const
     if (wp->w_rect.left == w_rect.right
         && wp->w_rect.top < ymax && wp->w_rect.bottom > ymin)
       x = min (x, int (wp->w_rect.right));
+#if !defined(__GNUG__) ///@todo
   x -= app.text_font.cell ().cx * WINDOW_WIDTH_MIN;
+#endif // __GNUG__
   return x;
 }
 
+#if !defined(__GNUG__) ///@todo
 static void
 paint_resize_line (HWND hwnd, const RECT &cr, int vert)
 {
@@ -2554,9 +2582,7 @@ WindowConfiguration::~WindowConfiguration ()
   assert (xwindow_wp (selected_window ()->lwp));
   assert (xwindow_wp (selected_window ()->lwp) == selected_window ());
 
-#if !defined(__GNUG__)
   Window::compute_geometry (wc_size);
-#endif // __GNUG__
 
   app.active_frame.reserved = 0;
   for (wp = reserved; wp; wp = next)
@@ -2568,7 +2594,6 @@ WindowConfiguration::~WindowConfiguration ()
   delete [] wc_data;
 }
 
-#if !defined(__GNUG__)
 lisp
 Fpos_not_visible_in_window_p (lisp point, lisp window)
 {
@@ -2642,10 +2667,12 @@ Fset_window_flags (lisp flags)
     }
   Window::w_default_flags = f;
   set_bgmode ();
+#if !defined(__GNUG__) ///@todo recalc_toplevel()
   if ((f ^ dflags) & Window::WF_FUNCTION_BAR)
     recalc_toplevel ();
   else if (recompute)
     Window::compute_geometry ();
+#endif // __GNUG__
   return Qt;
 }
 
@@ -2747,10 +2774,15 @@ Fset_local_window_flags (lisp lobj, lisp lflags, lisp lon)
 lisp
 Fsi_instance_number ()
 {
+#if !defined(__GNUG__)
   int i = xyzzy_instance::instnum ();
   return i >= 0 ? make_fixnum (i) : Qnil;
+#else  // __GNUG__
+  return Qnil;
+#endif // __GNUG__
 }
 
+#if !defined(__GNUG__)
 static void
 activate_xyzzy_window (HWND hwnd)
 {
@@ -2777,29 +2809,43 @@ next_xyzzy_window (int next)
   activate_xyzzy_window (hwnd);
   return Qt;
 }
+#endif // __GNUG__
 
 lisp
 Fnext_xyzzy_window ()
 {
+#if !defined(__GNUG__)
   return next_xyzzy_window (1);
+#else  // __GNUG__
+  return Qnil;
+#endif // __GNUG__
 }
 
 lisp
 Fprevious_xyzzy_window ()
 {
+#if !defined(__GNUG__)
   return next_xyzzy_window (0);
+#else  // __GNUG__
+  return Qnil;
+#endif // __GNUG__
 }
 
 lisp
 Fcount_xyzzy_instance ()
 {
+#if !defined(__GNUG__)
   xyzzy_hwnd xh (app.toplev);
   return make_fixnum (xh.count ());
+#else  // __GNUG__
+  return Qnil;
+#endif // __GNUG__
 }
 
 lisp
 Flist_xyzzy_windows ()
 {
+#if !defined(__GNUG__)
   xyzzy_hwnd xh (app.toplev);
   int i = -1;
   lisp p = Qnil;
@@ -2814,11 +2860,15 @@ Flist_xyzzy_windows ()
         p = xcons (xcons (make_fixnum (i), make_string (buf)), p);
     }
   return Fnreverse (p);
+#else  // __GNUG__
+  return Qnil;
+#endif // __GNUG__
 }
 
 lisp
 Factivate_xyzzy_window (lisp x)
 {
+#if !defined(__GNUG__)
   int i = fixnum_value (x);
   int o = i--;
   xyzzy_hwnd xh (app.toplev);
@@ -2827,6 +2877,9 @@ Factivate_xyzzy_window (lisp x)
     return Qnil;
   activate_xyzzy_window (hwnd);
   return Qt;
+#else  // __GNUG__
+  return Qnil;
+#endif // __GNUG__
 }
 
 static lisp
@@ -3316,6 +3369,7 @@ Fset_window_configuration (lisp lconf)
 #define SPI_SETFOREGROUNDLOCKTIMEOUT 0x2001
 #endif
 
+#if !defined(__GNUG__)
 void
 ForceSetForegroundWindow (HWND hwnd)
 {
@@ -3351,10 +3405,12 @@ auto_scroll (int n, void *arg)
   if (wp->scroll_window (n))
     refresh_screen (1);
 }
+#endif // __GNUG__
 
 lisp
 Fbegin_auto_scroll ()
 {
+#if !defined(__GNUG__)
   POINT p;
   GetCursorPos (&p);
   Window *wp = Window::find_scr_point_window (p, 0, 0);
@@ -3367,9 +3423,11 @@ Fbegin_auto_scroll ()
           : bp->folded_count_lines ()) <= 1
       || !begin_auto_scroll (wp->w_hwnd, p, auto_scroll, wp))
     return Qnil;
+#endif // __GNUG__
   return Qt;
 }
 
+#if !defined(__GNUG__)
 void
 Window::calc_ruler_rect (RECT &r) const
 {

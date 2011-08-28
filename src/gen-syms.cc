@@ -2006,7 +2006,6 @@ static symbols ed[] =
   DEFUN3 (compiled-regexp-case-fold-p, 1, 0, 0),
 
   /* Window.cc */
-#if !defined(__GNUG__)
   DEFCMD3 (split-window, 0, 2, 0, "p"),
   DEFCMD3 (delete-other-windows, 0, 0, 0, ""),
   DEFCMD3 (delete-window, 0, 0, 0, ""),
@@ -2016,14 +2015,10 @@ static symbols ed[] =
   DEFUN3 (window-buffer, 1, 0, 0),
   DEFUN3 (next-window, 1, 1, 0),
   DEFUN3 (previous-window, 1, 1, 0),
-#endif //__GNUG__
   DEFUN3 (get-buffer-window, 1, 1, 0),
-#if !defined(__GNUG__)
   DEFUN3 (set-window, 1, 0, 0),
   DEFCMD3 (enlarge-window, 0, 2, 0, "p"),
-#endif //__GNUG__
   MAKE_SYMBOL2 (insert-default-directory),
-#if !defined(__GNUG__)
   DEFUN3 (screen-width, 0, 0, 0),
   DEFUN3 (screen-height, 0, 0, 0),
   DEFUN3 (window-width, 0, 1, 0),
@@ -2051,7 +2046,6 @@ static symbols ed[] =
   DEFCMD3 (begin-auto-scroll, 0, 0, 0, ""),
   MAKE_SYMBOL2 (*page-scroll-half-window*),
   MAKE_SYMBOL2 (*next-screen-context-lines*),
-#endif //__GNUG__
 
   /* syntax.cc */
   DEFUN3 (make-syntax-table, 0, 0, 0),

@@ -519,6 +519,8 @@ struct Window
 #if !defined(__GNUG__) ///<TODO
   static void compute_geometry (const SIZE & = app.active_frame.size,
                                 int = app.text_font.cell ().cy);
+#else  // __GNUG__
+  static void compute_geometry (const SIZE & = app.active_frame.size);
 #endif // __GNUG__
   static void move_all_windows (int = 1);
   static void repaint_all_windows ();
@@ -537,13 +539,13 @@ struct Window
       RE_TOP = 4,
       RE_BOTTOM = 8
     };
-#if !defined(__GNUG__)
   int find_resizeable_edge (LONG RECT::*, LONG RECT::*, LONG RECT::*, LONG RECT::*) const;
   int find_resizeable_edges () const;
+#if !defined(__GNUG__)
   static Window *find_point_window (POINT &p);
   static Window *find_scr_point_window (const POINT &, int, int *);
-  void resize_edge (LONG RECT::*, LONG RECT::*, LONG RECT::*, LONG RECT::*) const;
 #endif // __GNUG__
+  void resize_edge (LONG RECT::*, LONG RECT::*, LONG RECT::*, LONG RECT::*) const;
   void resize_edge (int) const;
   int delete_window ();
 
@@ -552,10 +554,10 @@ struct Window
   static Window *coerce_to_window (lisp);
 #if !defined(__GNUG__) ///<TODO 
   static Window *find_point_window (const POINT &, int &);
+#endif // __GNUG__
   Window *find_resizeable_window (LONG RECT::*, LONG RECT::*, LONG RECT::*, LONG RECT::*, LONG RECT::*) const;
   Window *find_horiz_window (LONG RECT::*) const;
   Window *find_vert_window (LONG RECT::*) const;
-#endif // __GNUG__
   int get_horiz_min (int, int) const;
   int get_horiz_max (int, int) const;
   int get_vert_min (int, int) const;
